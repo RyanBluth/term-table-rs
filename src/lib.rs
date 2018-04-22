@@ -119,7 +119,7 @@ impl<'data> Table<'data> {
         self.rows.push(row);
     }
 
-    pub fn print(&mut self) {
+    pub fn as_string(&mut self) -> String{
         let mut print_buffer = String::new();
         let max_widths = self.calculate_max_column_widths();
         let mut previous_separator = None;
@@ -149,8 +149,8 @@ impl<'data> Table<'data> {
                 None,
             );
             Table::buffer_line(&mut print_buffer, &separator);
-            println!("{}", print_buffer);
         }
+        return print_buffer;
     }
 
     fn format_row(&self, row: &Row<'data>, max_widths: &Vec<usize>) -> String {
@@ -221,5 +221,46 @@ impl<'data> Table<'data> {
 
     fn buffer_line(buffer: &mut String, line: &String) {
         buffer.push_str(format!("{}\n", line).as_str());
+    }
+}
+
+#[cfg(test)]
+mod test{
+
+    use cell::Cell;
+    use row::Row;
+    use Table;
+
+    #[test]
+    fn complex_table(){
+        let mut table = Table::new();
+        table.add_row(Row::new(vec![
+            Cell::new("asdasff", 2),
+            Cell::new("ffdasdasdasff", 1),
+            Cell::new("ffqqqqdasdasffr", 2),
+            Cell::new("ffdasdasdasff", 1),
+        ]));
+        table.add_row(Row::new(vec![
+            Cell::new("fasdsadff", 1),
+            Cell::new("fffedddde", 1),
+            Cell::new("fff", 1),
+        ]));
+        table.add_row(Row::new(vec![
+            Cell::new("fasdaff", 1),
+            Cell::new("fff", 1),
+            Cell::new("fff", 1),
+        ]));
+        table.add_row(Row::new(vec![
+            Cell::new("fasdff", 3),
+            Cell::new("fffdff", 4),
+        ]));
+        table.add_row(Row::new(vec![
+            Cell::new("fasdsaff", 1),
+            Cell::new("fff", 1),
+            Cell::new("fff", 1),
+        ]));
+        table.add_row(Row::new(vec![Cell::new("fasdsaff", 1)]));
+        table.add_row(Row::new(vec![Cell::new("fasdsaff", 15)]));
+        println!("{}", table.as_string());
     }
 }
