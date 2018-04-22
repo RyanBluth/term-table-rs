@@ -1,0 +1,6 @@
+[package]
+name = "term-table"
+version = "0.1.0"
+authors = ["Ryan Bluth <ryanbluth93@gmail.com>"]
+
+[dependencies]
