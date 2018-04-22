@@ -101,7 +101,6 @@ impl TableStyle {
 }
 
 pub struct Table<'data> {
-    pub column_titles: Vec<String>,
     pub rows: Vec<Row<'data>>,
     pub style: TableStyle,
 }
@@ -109,7 +108,6 @@ pub struct Table<'data> {
 impl<'data> Table<'data> {
     pub fn new() -> Table<'data> {
         return Table {
-            column_titles: Vec::new(),
             rows: Vec::new(),
             style: TableStyle::extended(),
         };
