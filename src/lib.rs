@@ -127,7 +127,7 @@ impl<'data> Table<'data> {
                 if i == 0 {
                     row_pos = RowPosition::First;
                 }
-                let separator = self.rows[i].get_separator(
+                let separator = self.rows[i].gen_separator(
                     &max_widths,
                     &self.style,
                     row_pos,
@@ -136,11 +136,11 @@ impl<'data> Table<'data> {
                 Table::buffer_line(&mut print_buffer, &separator);
                 Table::buffer_line(
                     &mut print_buffer,
-                    &self.format_row(&self.rows[i], &max_widths),
+                    &self.rows[i].format(&max_widths, &self.style),
                 );
                 previous_separator = Some(separator.clone());
             }
-            let separator = self.rows.last().unwrap().get_separator(
+            let separator = self.rows.last().unwrap().gen_separator(
                 &max_widths,
                 &self.style,
                 RowPosition::Last,
@@ -151,54 +151,10 @@ impl<'data> Table<'data> {
         return print_buffer;
     }
 
-    fn format_row(&self, row: &Row<'data>, max_widths: &Vec<usize>) -> String {
-        let mut buf = String::new();
-
-        let mut spanned_columns = 0;
-
-        for i in 0..max_widths.len() {
-            if row.cells.len() > i {
-                let mut cell_span = 0;
-                let cell = &row.cells[i];
-
-                for c in 0..cell.col_span {
-                    cell_span += max_widths[spanned_columns + c];
-                }
-                let mut padding = 0;
-                if cell_span > cell.width() {
-                    padding += cell_span - cell.width();
-                    if cell.col_span > 1 {
-                        padding += cell.col_span - 1;
-                    }
-                }
-                buf.push_str(
-                    format!(
-                        "{}{}",
-                        self.style.vertical,
-                        cell.format_with_padding(padding)
-                    ).as_str(),
-                );
-                spanned_columns += cell.col_span;
-            } else {
-                buf.push_str(
-                    format!(
-                        "{}{}",
-                        self.style.vertical,
-                        str::repeat(" ", max_widths[spanned_columns])
-                    ).as_str(),
-                );
-                spanned_columns += 1;
-            }
-            if spanned_columns == max_widths.len() {
-                break;
-            }
-        }
-
-        buf.push(self.style.vertical);
-
-        return buf;
-    }
-
+    /// Calculates the maximum width for each column 
+    /// If a cell has a column span greater than 1, then the width
+    /// of it's contents are divided by the column span, otherwise the cell
+    /// would use more space than it needed
     fn calculate_max_column_widths(&self) -> Vec<usize> {
         let mut num_columns = 0;
 

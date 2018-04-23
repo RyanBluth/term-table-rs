@@ -19,7 +19,55 @@ impl<'data> Row<'data> {
         return row;
     }
 
-    pub fn get_separator(
+    pub fn format(&self, max_widths: &Vec<usize>, style: &TableStyle,) -> String {
+        let mut buf = String::new();
+
+        let mut spanned_columns = 0;
+
+        for i in 0..max_widths.len() {
+            if self.cells.len() > i {
+                let mut cell_span = 0;
+                let cell = &self.cells[i];
+
+                for c in 0..cell.col_span {
+                    cell_span += max_widths[spanned_columns + c];
+                }
+                let mut padding = 0;
+                if cell_span > cell.width() {
+                    padding += cell_span - cell.width();
+                    if cell.col_span > 1 {
+                        padding += cell.col_span - 1;
+                    }
+                }
+                buf.push_str(
+                    format!(
+                        "{}{}",
+                        style.vertical,
+                        cell.format_with_padding(padding)
+                    ).as_str(),
+                );
+                spanned_columns += cell.col_span;
+            } else {
+                buf.push_str(
+                    format!(
+                        "{}{}",
+                        style.vertical,
+                        str::repeat(" ", max_widths[spanned_columns])
+                    ).as_str(),
+                );
+                spanned_columns += 1;
+            }
+            if spanned_columns == max_widths.len() {
+                break;
+            }
+        }
+
+        buf.push(style.vertical);
+
+        return buf;
+    }
+
+    pub fn gen_separator(
         &self,
         max_widths: &Vec<usize>,
         style: &TableStyle,
