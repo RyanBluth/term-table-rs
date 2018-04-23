@@ -1,9 +1,16 @@
 use std::borrow::Cow;
 use std::fmt::{Display, Formatter, Result};
 
+pub enum Alignment {
+    Left,
+    Right,
+    Center,
+}
+
 pub struct Cell<'data> {
     pub data: Cow<'data, str>,
     pub col_span: usize,
+    pub alignment: Alignment,
 }
 
 impl<'data> Cell<'data> {
@@ -13,7 +20,19 @@ impl<'data> Cell<'data> {
     {
         return Cell {
             data: data.into(),
-            col_span,
+            col_span: col_span,
+            alignment: Alignment::Left,
+        };
+    }
+
+    pub fn new_with_alignment<C>(data: C, col_span: usize, alignment: Alignment) -> Cell<'data>
+    where
+        C: Into<Cow<'data, str>>,
+    {
+        return Cell {
+            data: data.into(),
+            col_span: col_span,
+            alignment: alignment,
         };
     }
 
@@ -24,6 +43,22 @@ impl<'data> Cell<'data> {
     pub fn split_width(&self) -> f32 {
         let res = self.width() as f32 / self.col_span as f32;
         return res;
+    }
+
+    pub fn format_with_padding(&self, padding: usize) -> String {
+        match self.alignment {
+            Alignment::Left => return format!("{}{}", self, str::repeat(" ", padding)),
+            Alignment::Right => return format!("{}{}", str::repeat(" ", padding), self),
+            Alignment::Center => {
+                let half_padding = padding as f32 / 2.0;
+                return format!(
+                    "{}{}{}",
+                    str::repeat(" ", half_padding.ceil() as usize),
+                    self,
+                    str::repeat(" ", half_padding.floor() as usize)
+                );
+            }
+        }
     }
 }
 

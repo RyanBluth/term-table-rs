@@ -117,7 +117,7 @@ impl<'data> Table<'data> {
         self.rows.push(row);
     }
 
-    pub fn as_string(&mut self) -> String{
+    pub fn as_string(&mut self) -> String {
         let mut print_buffer = String::new();
         let max_widths = self.calculate_max_column_widths();
         let mut previous_separator = None;
@@ -173,10 +173,9 @@ impl<'data> Table<'data> {
                 }
                 buf.push_str(
                     format!(
-                        "{}{}{}",
+                        "{}{}",
                         self.style.vertical,
-                        cell,
-                        str::repeat(" ", padding)
+                        cell.format_with_padding(padding)
                     ).as_str(),
                 );
                 spanned_columns += cell.col_span;
@@ -223,14 +222,14 @@ impl<'data> Table<'data> {
 }
 
 #[cfg(test)]
-mod test{
+mod test {
 
-    use cell::Cell;
+    use cell::{Cell, Alignment};
     use row::Row;
     use Table;
 
     #[test]
-    fn complex_table(){
+    fn complex_table() {
         let mut table = Table::new();
         table.add_row(Row::new(vec![
             Cell::new("asdasff", 2),
@@ -249,7 +248,7 @@ mod test{
             Cell::new("fff", 1),
         ]));
         table.add_row(Row::new(vec![
-            Cell::new("fasdff", 3),
+            Cell::new_with_alignment("fasdff", 3, Alignment::Right),
             Cell::new("fffdff", 4),
         ]));
         table.add_row(Row::new(vec![
@@ -258,7 +257,7 @@ mod test{
             Cell::new("fff", 1),
         ]));
         table.add_row(Row::new(vec![Cell::new("fasdsaff", 1)]));
-        table.add_row(Row::new(vec![Cell::new("fasdsaff", 15)]));
+        table.add_row(Row::new(vec![Cell::new_with_alignment("fasdsaff", 15, Alignment::Center)]));
         println!("{}", table.as_string());
     }
 }
