@@ -1,4 +1,4 @@
-use cell::Cell;
+use cell::{Cell, Alignment};
 use {RowPosition, TableStyle};
 use std::str::FromStr;
 use std::cmp::{max, min};
@@ -63,10 +63,9 @@ impl<'data> Row<'data> {
                         }
                         lines[h].push_str(
                             format!(
-                                "{}{}{}",
+                                "{}{}",
                                 style.vertical,
-                                wrapped_cells[i][h],
-                                str::repeat(" ", padding)
+                                self.format_cell_text_with_padding(padding, cell.alignment, &wrapped_cells[i][h])
                             ).as_str(),
                         );
                     } else {
@@ -195,5 +194,21 @@ impl<'data> Row<'data> {
 
     pub fn num_columns(&self) -> usize {
         return self.cells.iter().map(|x| x.col_span).sum();
+    }
+
+    fn format_cell_text_with_padding(&self, padding:usize, alignment:Alignment, text:&String) -> String{
+        match alignment {
+            Alignment::Left => return format!("{}{}", text, str::repeat(" ", padding)),
+            Alignment::Right => return format!("{}{}", str::repeat(" ", padding), text),
+            Alignment::Center => {
+                let half_padding = padding as f32 / 2.0;
+                return format!(
+                    "{}{}{}",
+                    str::repeat(" ", half_padding.ceil() as usize),
+                    text,
+                    str::repeat(" ", half_padding.floor() as usize)
+                );
+            }
+        }
     }
 }

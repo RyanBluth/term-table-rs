@@ -2,7 +2,9 @@ use std::borrow::Cow;
 use std::fmt::{Display, Formatter, Result};
 use std::str::FromStr;
 use std::cmp;
+use std;
 
+#[derive(Clone, Copy)]
 pub enum Alignment {
     Left,
     Right,
@@ -39,7 +41,12 @@ impl<'data> Cell<'data> {
     }
 
     pub fn width(&self) -> usize {
-        return self.data.chars().count() + 2;
+        let wrapped = self.wrap_to_width(std::usize::MAX);
+        let mut max = 0;
+        for s in wrapped{
+            max = cmp::max(max, s.len());
+        }
+        return max + 2;
     }
 
     pub fn split_width(&self) -> f32 {
@@ -47,33 +54,23 @@ impl<'data> Cell<'data> {
         return res;
     }
 
-    pub fn format_with_padding(&self, padding: usize) -> String {
-        match self.alignment {
-            Alignment::Left => return format!("{}{}", self, str::repeat(" ", padding)),
-            Alignment::Right => return format!("{}{}", str::repeat(" ", padding), self),
-            Alignment::Center => {
-                let half_padding = padding as f32 / 2.0;
-                return format!(
-                    "{}{}{}",
-                    str::repeat(" ", half_padding.ceil() as usize),
-                    self,
-                    str::repeat(" ", half_padding.floor() as usize)
-                );
-            }
-        }
-    }
-
     pub fn wrap_to_width(&self, width: usize) -> Vec<String> {
-        let char_count = self.data.chars().count();
         let mut res: Vec<String> = Vec::new();
-        let mut index = 0;
-        while index < char_count {
-            let upper = cmp::min(char_count, width + index);
-            let ref sub_data = self.data[index..upper];
-            let value = String::from_str(sub_data).unwrap();
-            res.push(value);
-            index += width;
+        let mut buf = String::new();
+        let mut current_width = 0;
+        for c in self.data.chars().enumerate(){
+            if current_width >= width || c.1 == '\n'{
+                res.push(buf);
+                buf = String::new();
+                current_width = 0;
+                if c.1 == '\n'{
+                    continue;
+                }
+            }
+            buf.push(c.1);
+            current_width += 1;
         }
+        res.push(buf);
         return res;
     }
 }

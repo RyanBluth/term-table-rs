@@ -174,6 +174,7 @@ impl<'data> Table<'data> {
                 );
             }
         }
+        println!("{:?}", max_widths);
         return max_widths;
     }
 
@@ -192,7 +193,7 @@ mod test {
     #[test]
     fn complex_table() {
         let mut table = Table::new();
-        table.max_column_width = 5;
+        //table.max_column_width = 10;
         table.add_row(Row::new(vec![
             Cell::new("Col*1*Span*2", 2),
             Cell::new("Col 2 Span 1", 1),
@@ -217,12 +218,17 @@ mod test {
         table.add_row(Row::new(vec![
             Cell::new("fasdsaff", 1),
             Cell::new("fff", 1),
-            Cell::new("fff", 1),
+            Cell::new("f\nf\nf\nfff\nrrr\n\n\n", 1),
         ]));
         table.add_row(Row::new(vec![Cell::new("fasdsaff", 1)]));
+
+        let s = table.as_string().clone();
+
         table.add_row(Row::new(vec![
-            Cell::new_with_alignment("fasdsaff", 15, Alignment::Center),
+            Cell::new_with_alignment(s, 15, Alignment::Left),
         ]));
+
         println!("{}", table.as_string());
+        
     }
 }
