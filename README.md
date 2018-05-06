@@ -1,3 +1,3 @@
 # term-table-rs
 
-[example]: https://imgur.com/a/ISbRHrg 
+![example](https://i.imgur.com/FPACsNP.png)
