@@ -1,5 +1,7 @@
 use cell::Cell;
 use {RowPosition, TableStyle};
+use std::str::FromStr;
+use std::cmp::{max, min};
 
 pub struct Row<'data> {
     pub cells: Vec<Cell<'data>>,
@@ -19,51 +21,90 @@ impl<'data> Row<'data> {
         return row;
     }
 
-    pub fn format(&self, max_widths: &Vec<usize>, style: &TableStyle,) -> String {
+    pub fn format(&self, max_widths: &Vec<usize>, style: &TableStyle) -> String {
         let mut buf = String::new();
 
         let mut spanned_columns = 0;
+
+        let mut max_row_span = 0;
+        let mut wrapped_cells = Vec::new();
+
+        for i in 0..self.cells.len() {
+            let cell = &self.cells[i];
+            let mut width = 0;
+            for j in 0..cell.col_span {
+                width += max_widths[j + spanned_columns];
+            }
+            let wrapped_cell = cell.wrap_to_width(width + cell.col_span - 1);
+            max_row_span = max(max_row_span, wrapped_cell.len());
+            wrapped_cells.push(wrapped_cell);
+            spanned_columns += cell.col_span;
+        }
+
+        spanned_columns = 0;
+
+        let mut lines = vec![String::new(); max_row_span];
 
         for i in 0..max_widths.len() {
             if self.cells.len() > i {
                 let mut cell_span = 0;
                 let cell = &self.cells[i];
-
                 for c in 0..cell.col_span {
                     cell_span += max_widths[spanned_columns + c];
                 }
-                let mut padding = 0;
-                if cell_span > cell.width() {
-                    padding += cell_span - cell.width();
-                    if cell.col_span > 1 {
-                        padding += cell.col_span - 1;
+                for h in 0..max_row_span {
+                    if wrapped_cells[i].len() > h {
+                        let mut padding = 0;
+                        if cell_span > wrapped_cells[i][h].chars().count() {
+                            padding += cell_span - wrapped_cells[i][h].chars().count();
+                            if cell.col_span > 1 {
+                                padding += cell.col_span - 1;
+                            }
+                        }
+                        lines[h].push_str(
+                            format!(
+                                "{}{}{}",
+                                style.vertical,
+                                wrapped_cells[i][h],
+                                str::repeat(" ", padding)
+                            ).as_str(),
+                        );
+                    } else {
+                        lines[h].push_str(
+                            format!(
+                                "{}{}",
+                                style.vertical,
+                                str::repeat(
+                                    " ",
+                                    max_widths[spanned_columns] * cell.col_span + cell.col_span - 1
+                                )
+                            ).as_str(),
+                        );
                     }
                 }
-                buf.push_str(
-                    format!(
-                        "{}{}",
-                        style.vertical,
-                        cell.format_with_padding(padding)
-                    ).as_str(),
-                );
                 spanned_columns += cell.col_span;
             } else {
-                buf.push_str(
-                    format!(
-                        "{}{}",
-                        style.vertical,
-                        str::repeat(" ", max_widths[spanned_columns])
-                    ).as_str(),
-                );
+                for h in 0..max_row_span {
+                    lines[h].push_str(
+                        format!(
+                            "{}{}",
+                            style.vertical,
+                            str::repeat(" ", max_widths[spanned_columns])
+                        ).as_str(),
+                    );
+                }
                 spanned_columns += 1;
             }
             if spanned_columns == max_widths.len() {
                 break;
             }
         }
-
-        buf.push(style.vertical);
-
+        for line in &lines {
+            buf.push_str(line.clone().as_str());
+            buf.push(style.vertical);
+            buf.push('\n');
+        }
+        buf.pop();
         return buf;
     }
 

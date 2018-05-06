@@ -3,7 +3,7 @@ pub mod cell;
 
 use row::Row;
 
-use std::cmp::max;
+use std::cmp::{max, min};
 
 #[derive(Eq, PartialEq, Copy, Clone)]
 pub enum RowPosition {
@@ -103,6 +103,7 @@ impl TableStyle {
 pub struct Table<'data> {
     pub rows: Vec<Row<'data>>,
     pub style: TableStyle,
+    pub max_column_width: usize,
 }
 
 impl<'data> Table<'data> {
@@ -110,6 +111,7 @@ impl<'data> Table<'data> {
         return Table {
             rows: Vec::new(),
             style: TableStyle::extended(),
+            max_column_width: std::usize::MAX,
         };
     }
 
@@ -151,7 +153,7 @@ impl<'data> Table<'data> {
         return print_buffer;
     }
 
-    /// Calculates the maximum width for each column 
+    /// Calculates the maximum width for each column
     /// If a cell has a column span greater than 1, then the width
     /// of it's contents are divided by the column span, otherwise the cell
     /// would use more space than it needed
@@ -166,7 +168,10 @@ impl<'data> Table<'data> {
         for row in &self.rows {
             let column_widths = row.adjusted_column_widths();
             for i in 0..column_widths.len() {
-                max_widths[i] = max(max_widths[i], column_widths[i] as usize);
+                max_widths[i] = min(
+                    self.max_column_width,
+                    max(max_widths[i], column_widths[i] as usize),
+                );
             }
         }
         return max_widths;
@@ -180,23 +185,25 @@ impl<'data> Table<'data> {
 #[cfg(test)]
 mod test {
 
-    use cell::{Cell, Alignment};
+    use cell::{Alignment, Cell};
     use row::Row;
     use Table;
 
     #[test]
     fn complex_table() {
         let mut table = Table::new();
+        table.max_column_width = 5;
         table.add_row(Row::new(vec![
-            Cell::new("asdasff", 2),
-            Cell::new("ffdasdasdasff", 1),
-            Cell::new("ffqqqqdasdasffr", 2),
-            Cell::new("ffdasdasdasff", 1),
+            Cell::new("Col*1*Span*2", 2),
+            Cell::new("Col 2 Span 1", 1),
+            Cell::new("Col 3 Span 2", 2),
+            Cell::new("Col 4 Span 1", 1),
         ]));
         table.add_row(Row::new(vec![
-            Cell::new("fasdsadff", 1),
-            Cell::new("fffedddde", 1),
-            Cell::new("fff", 1),
+            Cell::new("Col 1 Span 1", 1),
+            Cell::new("Col 2 Span 1", 1),
+            Cell::new("Col 3 Span 1", 1),
+            Cell::new("Col 4 Span 1", 2),
         ]));
         table.add_row(Row::new(vec![
             Cell::new("fasdaff", 1),
@@ -213,7 +220,9 @@ mod test {
             Cell::new("fff", 1),
         ]));
         table.add_row(Row::new(vec![Cell::new("fasdsaff", 1)]));
-        table.add_row(Row::new(vec![Cell::new_with_alignment("fasdsaff", 15, Alignment::Center)]));
+        table.add_row(Row::new(vec![
+            Cell::new_with_alignment("fasdsaff", 15, Alignment::Center),
+        ]));
         println!("{}", table.as_string());
     }
 }

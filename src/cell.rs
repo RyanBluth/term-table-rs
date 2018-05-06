@@ -1,5 +1,7 @@
 use std::borrow::Cow;
 use std::fmt::{Display, Formatter, Result};
+use std::str::FromStr;
+use std::cmp;
 
 pub enum Alignment {
     Left,
@@ -59,6 +61,20 @@ impl<'data> Cell<'data> {
                 );
             }
         }
+    }
+
+    pub fn wrap_to_width(&self, width: usize) -> Vec<String> {
+        let char_count = self.data.chars().count();
+        let mut res: Vec<String> = Vec::new();
+        let mut index = 0;
+        while index < char_count {
+            let upper = cmp::min(char_count, width + index);
+            let ref sub_data = self.data[index..upper];
+            let value = String::from_str(sub_data).unwrap();
+            res.push(value);
+            index += width;
+        }
+        return res;
     }
 }
 
