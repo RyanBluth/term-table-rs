@@ -44,7 +44,7 @@ impl<'data> Cell<'data> {
         let wrapped = self.wrap_to_width(std::usize::MAX);
         let mut max = 0;
         for s in wrapped{
-            max = cmp::max(max, s.len());
+            max = cmp::max(max, s.chars().count());
         }
         return max + 2;
     }
@@ -58,10 +58,13 @@ impl<'data> Cell<'data> {
         let mut res: Vec<String> = Vec::new();
         let mut buf = String::new();
         let mut current_width = 0;
+        buf.push(' ');
         for c in self.data.chars().enumerate(){
             if current_width >= width || c.1 == '\n'{
+                buf.push(' ');
                 res.push(buf);
                 buf = String::new();
+                buf.push(' ');
                 current_width = 0;
                 if c.1 == '\n'{
                     continue;
@@ -70,6 +73,7 @@ impl<'data> Cell<'data> {
             buf.push(c.1);
             current_width += 1;
         }
+        buf.push(' ');
         res.push(buf);
         return res;
     }

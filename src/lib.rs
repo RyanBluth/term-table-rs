@@ -174,7 +174,6 @@ impl<'data> Table<'data> {
                 );
             }
         }
-        println!("{:?}", max_widths);
         return max_widths;
     }
 
@@ -225,7 +224,7 @@ mod test {
         let s = table.as_string().clone();
 
         table.add_row(Row::new(vec![
-            Cell::new_with_alignment(s, 15, Alignment::Left),
+            Cell::new_with_alignment(s, 3, Alignment::Left),
         ]));
 
         println!("{}", table.as_string());
