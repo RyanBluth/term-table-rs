@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 use std::fmt::{Display, Formatter, Result};
-use std::str::FromStr;
+use wcwidth::str_width;
 use std::cmp;
 use std;
 
@@ -44,7 +44,11 @@ impl<'data> Cell<'data> {
         let wrapped = self.wrap_to_width(std::usize::MAX);
         let mut max = 0;
         for s in wrapped{
-            max = cmp::max(max, s.chars().count());
+            let str_width = match str_width(s.as_str()){
+                Some(w) => w,
+                None => 0
+            };
+            max = cmp::max(max, str_width);
         }
         return max + 2;
     }

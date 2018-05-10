@@ -1,3 +1,5 @@
+extern crate wcwidth;
+
 pub mod row;
 pub mod cell;
 
