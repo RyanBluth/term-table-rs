@@ -43,10 +43,10 @@ impl<'data> Cell<'data> {
     pub fn width(&self) -> usize {
         let wrapped = self.wrap_to_width(std::usize::MAX);
         let mut max = 0;
-        for s in wrapped{
-            let str_width = match str_width(s.as_str()){
+        for s in wrapped {
+            let str_width = match str_width(s.as_str()) {
                 Some(w) => w,
-                None => 0
+                None => 0,
             };
             max = cmp::max(max, str_width);
         }
@@ -61,16 +61,16 @@ impl<'data> Cell<'data> {
     pub fn wrap_to_width(&self, width: usize) -> Vec<String> {
         let mut res: Vec<String> = Vec::new();
         let mut buf = String::new();
-        let mut current_width = 0;
+        let mut current_width = 1;
         buf.push(' ');
-        for c in self.data.chars().enumerate(){
-            if current_width >= width || c.1 == '\n'{
+        for c in self.data.chars().enumerate() {
+            if current_width + 1 >= width || c.1 == '\n' {
                 buf.push(' ');
                 res.push(buf);
                 buf = String::new();
                 buf.push(' ');
-                current_width = 0;
-                if c.1 == '\n'{
+                current_width = 1;
+                if c.1 == '\n' {
                     continue;
                 }
             }

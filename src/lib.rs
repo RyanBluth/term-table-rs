@@ -7,6 +7,7 @@ use row::Row;
 
 use std::cmp::{max, min};
 
+/// Represents the vertical postion of a row
 #[derive(Eq, PartialEq, Copy, Clone)]
 pub enum RowPosition {
     First,
@@ -14,6 +15,25 @@ pub enum RowPosition {
     Last,
 }
 
+/// A set of characters which make up a table style
+///
+///# Example
+///
+///```
+///   TableStyle {
+///            top_left_corner: '╔',
+///            top_right_corner: '╗',
+///            bottom_left_corner: '╚',
+///            bottom_right_corner: '╝',
+///            outer_left_vertical: '╠',
+///            outer_right_vertical: '╣',
+///            outer_bottom_horizontal: '╩',
+///            outer_top_horizontal: '╦',
+///            intersection: '╬',
+///            vertical: '║',
+///            horizontal: '═',
+///        };
+///```
 pub struct TableStyle {
     pub top_left_corner: char,
     pub top_right_corner: char,
@@ -29,6 +49,23 @@ pub struct TableStyle {
 }
 
 impl TableStyle {
+
+    /// Basic terminal table style
+    /// 
+    ///# Example
+    ///
+    ///<pre>
+    ///   +---------------------------------------------------------------------------------+
+    ///   |                            This is some centered text                           |
+    ///   +----------------------------------------+----------------------------------------+
+    ///   | This is left aligned text              |             This is right aligned text |
+    ///   +----------------------------------------+----------------------------------------+
+    ///   | This is left aligned text              |             This is right aligned text |
+    ///   +----------------------------------------+----------------------------------------+
+    ///   | This is some really really really really really really really really really tha |
+    ///   | t is going to wrap to the next line                                             |
+    ///   +---------------------------------------------------------------------------------+
+    ///</pre>
     pub fn simple() -> TableStyle {
         return TableStyle {
             top_left_corner: '+',
@@ -45,6 +82,22 @@ impl TableStyle {
         };
     }
 
+    /// Table style using extended character set
+    /// 
+    ///# Example
+    ///
+    ///<pre>
+    /// ╔═════════════════════════════════════════════════════════════════════════════════╗
+    /// ║                            This is some centered text                           ║
+    /// ╠════════════════════════════════════════╦════════════════════════════════════════╣
+    /// ║ This is left aligned text              ║             This is right aligned text ║
+    /// ╠════════════════════════════════════════╬════════════════════════════════════════╣
+    /// ║ This is left aligned text              ║             This is right aligned text ║
+    /// ╠════════════════════════════════════════╩════════════════════════════════════════╣
+    /// ║ This is some really really really really really really really really really tha ║
+    /// ║ t is going to wrap to the next line                                             ║
+    /// ╚═════════════════════════════════════════════════════════════════════════════════╝
+    ///</pre>
     pub fn extended() -> TableStyle {
         return TableStyle {
             top_left_corner: '╔',
@@ -58,6 +111,36 @@ impl TableStyle {
             intersection: '╬',
             vertical: '║',
             horizontal: '═',
+        };
+    }
+
+    /// Table style comprised of null characters
+    /// 
+    ///# Example
+    ///
+    ///<pre>
+    ///                           This is some centered text
+    ///
+    /// This is left aligned text                           This is right aligned text
+    ///
+    /// This is left aligned text                           This is right aligned text
+    ///
+    /// This is some really really really really really really really really really tha
+    /// t is going to wrap to the next line
+    ///</pre>
+    pub fn blank() -> TableStyle {
+        return TableStyle {
+            top_left_corner: '\0',
+            top_right_corner: '\0',
+            bottom_left_corner: '\0',
+            bottom_right_corner: '\0',
+            outer_left_vertical: '\0',
+            outer_right_vertical: '\0',
+            outer_bottom_horizontal: '\0',
+            outer_top_horizontal: '\0',
+            intersection: '\0',
+            vertical: '\0',
+            horizontal: '\0',
         };
     }
 
@@ -168,7 +251,7 @@ impl<'data> Table<'data> {
 
         let mut max_widths: Vec<usize> = vec![0; num_columns];
         for row in &self.rows {
-            let column_widths = row.adjusted_column_widths();
+            let column_widths = row.split_column_widths();
             for i in 0..column_widths.len() {
                 max_widths[i] = min(
                     self.max_column_width,
@@ -190,6 +273,94 @@ mod test {
     use cell::{Alignment, Cell};
     use row::Row;
     use Table;
+    use TableStyle;
+
+    #[test]
+    fn simple_table_style() {
+
+        let mut table = Table::new();
+        table.max_column_width = 40;
+        
+        table.style = TableStyle::simple(); 
+
+        table.add_row(Row::new(vec![
+            Cell::new_with_alignment("This is some centered text", 2, Alignment::Center)
+        ])); 
+
+        table.add_row(Row::new(vec![
+            Cell::new("This is left aligned text", 1),
+            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+        ]));
+
+         table.add_row(Row::new(vec![
+            Cell::new("This is left aligned text", 1),
+            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+        ]));
+
+        table.add_row(Row::new(vec![
+            Cell::new("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+        ]));   
+
+        println!("{}", table.as_string());
+    }
+
+    #[test]
+    fn extended_table_style() {
+
+        let mut table = Table::new();
+        table.max_column_width = 40;
+        
+        table.style = TableStyle::extended(); 
+
+        table.add_row(Row::new(vec![
+            Cell::new_with_alignment("This is some centered text", 2, Alignment::Center)
+        ])); 
+
+        table.add_row(Row::new(vec![
+            Cell::new("This is left aligned text", 1),
+            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+        ]));
+
+         table.add_row(Row::new(vec![
+            Cell::new("This is left aligned text", 1),
+            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+        ]));
+
+        table.add_row(Row::new(vec![
+            Cell::new("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+        ]));   
+
+        println!("{}", table.as_string());
+    }
+
+     #[test]
+    fn blank_table_style() {
+
+        let mut table = Table::new();
+        table.max_column_width = 40;
+        
+        table.style = TableStyle::blank(); 
+
+        table.add_row(Row::new(vec![
+            Cell::new_with_alignment("This is some centered text", 2, Alignment::Center)
+        ])); 
+
+        table.add_row(Row::new(vec![
+            Cell::new("This is left aligned text", 1),
+            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+        ]));
+
+         table.add_row(Row::new(vec![
+            Cell::new("This is left aligned text", 1),
+            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+        ]));
+
+        table.add_row(Row::new(vec![
+            Cell::new("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+        ]));   
+
+        println!("{}", table.as_string());
+    }
 
     #[test]
     fn complex_table() {
@@ -230,6 +401,5 @@ mod test {
         ]));
 
         println!("{}", table.as_string());
-        
     }
 }

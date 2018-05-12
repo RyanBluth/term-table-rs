@@ -1,8 +1,9 @@
-use cell::{Cell, Alignment};
+use cell::{Alignment, Cell};
 use {RowPosition, TableStyle};
-use std::cmp::{max};
-use wcwidth::str_width;
+use std::cmp::max;
+use wcwidth::{char_width, str_width};
 
+/// A set of table cells
 pub struct Row<'data> {
     pub cells: Vec<Cell<'data>>,
 }
@@ -21,6 +22,7 @@ impl<'data> Row<'data> {
         return row;
     }
 
+    /// Formats a row based on the provided table style
     pub fn format(&self, max_widths: &Vec<usize>, style: &TableStyle) -> String {
         let mut buf = String::new();
 
@@ -55,21 +57,26 @@ impl<'data> Row<'data> {
                 for h in 0..max_row_span {
                     if wrapped_cells[i].len() > h {
                         let mut padding = 0;
-                         let str_width = match str_width(wrapped_cells[i][h].as_str()){
+                        let str_width = match str_width(wrapped_cells[i][h].as_str()) {
                             Some(w) => w,
-                            None => 0
+                            None => 0,
                         };
                         if cell_span > str_width {
                             padding += cell_span - str_width;
                             if cell.col_span > 1 {
-                                padding += cell.col_span - 1;
+                                padding += char_width(style.vertical).unwrap_or_default() as usize
+                                    * (cell.col_span - 1);
                             }
                         }
                         lines[h].push_str(
                             format!(
                                 "{}{}",
                                 style.vertical,
-                                self.format_cell_text_with_padding(padding, cell.alignment, &wrapped_cells[i][h])
+                                self.format_cell_text_with_padding(
+                                    padding,
+                                    cell.alignment,
+                                    &wrapped_cells[i][h]
+                                )
                             ).as_str(),
                         );
                     } else {
@@ -111,6 +118,9 @@ impl<'data> Row<'data> {
         return buf;
     }
 
+
+    /// Generates the top separator for a row
+    /// The previous seperator is used to determine junction characters 
     pub fn gen_separator(
         &self,
         max_widths: &Vec<usize>,
@@ -185,7 +195,10 @@ impl<'data> Row<'data> {
         };
     }
 
-    pub fn adjusted_column_widths(&self) -> Vec<f32> {
+    /// Returns a vector of split cell widths. 
+    /// A split width is the cell's total width divided by it's col_span value.
+    /// Each cell's split width value is pushed into the resulting vector col_span times
+    pub fn split_column_widths(&self) -> Vec<f32> {
         let mut res = Vec::new();
         for cell in &self.cells {
             let val = cell.split_width();
@@ -196,11 +209,19 @@ impl<'data> Row<'data> {
         return res;
     }
 
+    /// Number of columns in the row
+    /// This is the sum of all cell's col_span values
     pub fn num_columns(&self) -> usize {
         return self.cells.iter().map(|x| x.col_span).sum();
     }
 
-    fn format_cell_text_with_padding(&self, padding:usize, alignment:Alignment, text:&String) -> String{
+    /// Pads a string accoding to the provided alignment
+    fn format_cell_text_with_padding(
+        &self,
+        padding: usize,
+        alignment: Alignment,
+        text: &String,
+    ) -> String {
         match alignment {
             Alignment::Left => return format!("{}{}", text, str::repeat(" ", padding)),
             Alignment::Right => return format!("{}{}", str::repeat(" ", padding), text),
