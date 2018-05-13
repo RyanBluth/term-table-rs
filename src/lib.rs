@@ -1,3 +1,44 @@
+//! The purpose of term-table is to make it easy for CLI apps to display data in a table format
+//!# Example
+//! Here is an example of how to create a simple table
+//!```
+//!let mut table = Table::new();
+//!table.max_column_width = 40;
+//!
+//!table.style = TableStyle::extended(); 
+//!table.add_row(Row::new(vec![
+//!    Cell::new_with_alignment("This is some centered text", 2, Alignment::Center)
+//!])); 
+//!table.add_row(Row::new(vec![
+//!    Cell::new("This is left aligned text", 1),
+//!    Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+//!]));
+//! table.add_row(Row::new(vec![
+//!    Cell::new("This is left aligned text", 1),
+//!    Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+//!]));
+//!table.add_row(Row::new(vec![
+//!    Cell::new("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+//!]));   
+//!println!("{}", table.as_string());
+//!```
+//!
+//!### This is the result
+//!
+//!<pre>
+//! ╔═════════════════════════════════════════════════════════════════════════════════╗
+//! ║                            This is some centered text                           ║
+//! ╠════════════════════════════════════════╦════════════════════════════════════════╣
+//! ║ This is left aligned text              ║             This is right aligned text ║
+//! ╠════════════════════════════════════════╬════════════════════════════════════════╣
+//! ║ This is left aligned text              ║             This is right aligned text ║
+//! ╠════════════════════════════════════════╩════════════════════════════════════════╣
+//! ║ This is some really really really really really really really really really tha ║
+//! ║ t is going to wrap to the next line                                             ║
+//! ╚═════════════════════════════════════════════════════════════════════════════════╝
+//!</pre>
+
+
 extern crate wcwidth;
 
 pub mod row;
@@ -174,7 +215,7 @@ impl TableStyle {
         }
     }
 
-    /// Merges two intersecting characters based on the vertical position of a row
+    /// Merges two intersecting characters based on the vertical position of a row.
     /// This is used to hanlde cases where one cell has a larger `col_span` value than the other
     fn merge_intersection_for_position(&self, top: char, bottom: char, pos: RowPosition) -> char {
         if (top == self.horizontal || top == self.outer_bottom_horizontal)
@@ -251,10 +292,10 @@ impl<'data> Table<'data> {
         return print_buffer;
     }
 
-    /// Calculates the maximum width for each column
+    /// Calculates the maximum width for each column.
     /// If a cell has a column span greater than 1, then the width
     /// of it's contents are divided by the column span, otherwise the cell
-    /// would use more space than it needed
+    /// would use more space than it needed.
     fn calculate_max_column_widths(&self) -> Vec<usize> {
         let mut num_columns = 0;
 

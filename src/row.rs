@@ -119,7 +119,8 @@ impl<'data> Row<'data> {
     }
 
 
-    /// Generates the top separator for a row
+    /// Generates the top separator for a row.
+    ///
     /// The previous seperator is used to determine junction characters 
     pub fn gen_separator(
         &self,
@@ -196,8 +197,10 @@ impl<'data> Row<'data> {
     }
 
     /// Returns a vector of split cell widths. 
+    ///
     /// A split width is the cell's total width divided by it's col_span value.
-    /// Each cell's split width value is pushed into the resulting vector col_span times
+    ///
+    /// Each cell's split width value is pushed into the resulting vector col_span times.
     pub fn split_column_widths(&self) -> Vec<f32> {
         let mut res = Vec::new();
         for cell in &self.cells {
@@ -209,7 +212,8 @@ impl<'data> Row<'data> {
         return res;
     }
 
-    /// Number of columns in the row
+    /// Number of columns in the row.
+    ///
     /// This is the sum of all cell's col_span values
     pub fn num_columns(&self) -> usize {
         return self.cells.iter().map(|x| x.col_span).sum();

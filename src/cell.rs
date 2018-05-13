@@ -4,7 +4,7 @@ use std::cmp;
 use std::fmt::{Display, Formatter, Result};
 use wcwidth::{char_width, str_width};
 
-/// Represents the horizontal alignment of content within a cell
+/// Represents the horizontal alignment of content within a cell.
 #[derive(Clone, Copy)]
 pub enum Alignment {
     Left,
@@ -12,9 +12,11 @@ pub enum Alignment {
     Center,
 }
 
-/// A table cell containing some str data
-/// A cell may span multiple columns by setting the value of `col_span`
-/// `pad_content` will add a space to either side of the cell's content
+///A table cell containing some str data.
+///
+///A cell may span multiple columns by setting the value of `col_span`.
+///
+///`pad_content` will add a space to either side of the cell's content.AsRef
 pub struct Cell<'data> {
     pub data: Cow<'data, str>,
     pub col_span: usize,
@@ -59,8 +61,9 @@ impl<'data> Cell<'data> {
         };
     }
 
-    /// Calculates the width of the cell
-    /// New line characters are taken into account during the calculation
+    /// Calculates the width of the cell.
+    ///
+    /// New line characters are taken into account during the calculation.
     pub fn width(&self) -> usize {
         let wrapped = self.wrap_to_width(std::usize::MAX);
         let mut max = 0;
@@ -74,14 +77,15 @@ impl<'data> Cell<'data> {
         return max + 2;
     }
 
-    /// The width of the cell's content divided by its `col_span` value
+    /// The width of the cell's content divided by its `col_span` value.
     pub fn split_width(&self) -> f32 {
         let res = self.width() as f32 / self.col_span as f32;
         return res;
     }
 
-    /// Wraps the cell's content to the provided width
-    /// New line characters are taken into account
+    /// Wraps the cell's content to the provided width.
+    ///
+    /// New line characters are taken into account.
     pub fn wrap_to_width(&self, width: usize) -> Vec<String> {
         let pad_char = match self.pad_content {
             true => ' ',
