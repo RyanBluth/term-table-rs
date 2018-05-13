@@ -144,6 +144,8 @@ impl TableStyle {
         };
     }
 
+    /// Returns the start character of a table style based on the 
+    /// vertical position of the row
     fn start_for_position(&self, pos: RowPosition) -> char {
         match pos {
             RowPosition::First => self.top_left_corner,
@@ -152,6 +154,8 @@ impl TableStyle {
         }
     }
 
+    /// Returns the end character of a table style based on the 
+    /// vertical position of the row
     fn end_for_position(&self, pos: RowPosition) -> char {
         match pos {
             RowPosition::First => self.top_right_corner,
@@ -160,6 +164,8 @@ impl TableStyle {
         }
     }
 
+    /// Returns the intersect character of a table style based on the 
+    /// vertical position of the row
     fn intersect_for_position(&self, pos: RowPosition) -> char {
         match pos {
             RowPosition::First => self.outer_top_horizontal,
@@ -168,6 +174,8 @@ impl TableStyle {
         }
     }
 
+    /// Merges two intersecting characters based on the vertical position of a row
+    /// This is used to hanlde cases where one cell has a larger `col_span` value than the other
     fn merge_intersection_for_position(&self, top: char, bottom: char, pos: RowPosition) -> char {
         if (top == self.horizontal || top == self.outer_bottom_horizontal)
             && bottom == self.intersection
@@ -185,9 +193,11 @@ impl TableStyle {
     }
 }
 
+/// A set of rows containing data
 pub struct Table<'data> {
     pub rows: Vec<Row<'data>>,
     pub style: TableStyle,
+    /// The maxium width of each column. Defults to `std::usize::max`
     pub max_column_width: usize,
 }
 
@@ -200,10 +210,13 @@ impl<'data> Table<'data> {
         };
     }
 
+    /// Simply adds a row to the rows Vec
     pub fn add_row(&mut self, row: Row<'data>) {
         self.rows.push(row);
     }
 
+    /// Does all of the calculations to reformat the row based on it's current
+    /// state and returns the result as a `String`
     pub fn as_string(&mut self) -> String {
         let mut print_buffer = String::new();
         let max_widths = self.calculate_max_column_widths();
@@ -262,6 +275,7 @@ impl<'data> Table<'data> {
         return max_widths;
     }
 
+    /// Helper method for adding a line to a string buffer
     fn buffer_line(buffer: &mut String, line: &String) {
         buffer.push_str(format!("{}\n", line).as_str());
     }
