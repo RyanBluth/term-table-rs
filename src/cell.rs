@@ -25,7 +25,7 @@ pub struct Cell<'data> {
 }
 
 impl<'data> Cell<'data> {
-    pub fn new(data: impl Into<Cow<'data, str>>, col_span: usize) -> Cell<'data> {
+    pub fn new<T>(data: T, col_span: usize) -> Cell<'data> where T: Into<Cow<'data, str>>{
         return Cell {
             data: data.into(),
             col_span: col_span,
@@ -34,11 +34,11 @@ impl<'data> Cell<'data> {
         };
     }
 
-    pub fn new_with_alignment(
+    pub fn new_with_alignment<T>(
         data: impl Into<Cow<'data, str>>,
         col_span: usize,
         alignment: Alignment,
-    ) -> Cell<'data> {
+    ) -> Cell<'data> where T: Into<Cow<'data, str>>{
         return Cell {
             data: data.into(),
             col_span: col_span,
@@ -47,12 +47,12 @@ impl<'data> Cell<'data> {
         };
     }
 
-    pub fn new_with_alignment_and_padding(
+    pub fn new_with_alignment_and_padding<T>(
         data: impl Into<Cow<'data, str>>,
         col_span: usize,
         alignment: Alignment,
         pad_content: bool,
-    ) -> Cell<'data> {
+    ) -> Cell<'data> where T: Into<Cow<'data, str>>{
         return Cell {
             data: data.into(),
             col_span: col_span,

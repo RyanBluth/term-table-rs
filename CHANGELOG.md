@@ -1,0 +1,11 @@
+# 0.1.2
+
+Reverted experimental usage of impl trait in `cell::Cell::new`, `cell::Cell::new_with_alignment` and `cell::Cell::new_with_alignment_and_padding` 
+
+# 0.1.1
+
+Added repository link to cargo.toml
+
+# 0.1.0
+
+Initial Release
