@@ -1,3 +1,7 @@
+# 0.1.3
+
+Actually reverted experimental usage of impl trait in `cell::Cell::new`, `cell::Cell::new_with_alignment` and `cell::Cell::new_with_alignment_and_padding` 
+
 # 0.1.2
 
 Reverted experimental usage of impl trait in `cell::Cell::new`, `cell::Cell::new_with_alignment` and `cell::Cell::new_with_alignment_and_padding` 
