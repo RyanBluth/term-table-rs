@@ -22,7 +22,7 @@ table.add_row(Row::new(vec![
     Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
 ]));
 
-    table.add_row(Row::new(vec![
+table.add_row(Row::new(vec![
     Cell::new("This is left aligned text", 1),
     Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
 ]));
