@@ -79,13 +79,28 @@ impl<'data> Cell<'data> {
             };
             max = cmp::max(max, str_width);
         }
-        return max + 2;
+        return max + match self.pad_content{
+            true => 2 * char_width(' ').unwrap_or(1) as usize,
+            false => 0
+        }
     }
 
     /// The width of the cell's content divided by its `col_span` value.
     pub fn split_width(&self) -> f32 {
         let res = self.width() as f32 / self.col_span as f32;
         return res;
+    }
+
+    /// The minium width required to display the cell properly
+    pub fn min_width(&self) -> usize {
+        let mut max_char_width:usize = 0;
+        for c in self.data.chars(){
+            max_char_width = cmp::max(max_char_width, char_width(c).unwrap_or(1) as usize);
+        }
+        return match self.pad_content{
+            true => max_char_width + char_width(' ').unwrap_or(1) as usize * 2,
+            false => max_char_width
+        }
     }
 
     /// Wraps the cell's content to the provided width.
@@ -100,8 +115,8 @@ impl<'data> Cell<'data> {
         let mut buf = String::new();
         buf.push(pad_char);
         for c in self.data.chars().enumerate() {
-            if str_width(buf.as_str()).unwrap_or_default() as usize
-                >= width - char_width(pad_char).unwrap_or_default() as usize
+            if str_width(buf.as_str()).unwrap_or(1) as usize
+                >= width - char_width(pad_char).unwrap_or(1) as usize
                 || c.1 == '\n'
             {
                 buf.push(pad_char);

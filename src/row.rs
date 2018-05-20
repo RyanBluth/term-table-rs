@@ -201,12 +201,16 @@ impl<'data> Row<'data> {
     /// A split width is the cell's total width divided by it's col_span value.
     ///
     /// Each cell's split width value is pushed into the resulting vector col_span times.
-    pub fn split_column_widths(&self) -> Vec<f32> {
+    /// Returns a vec of tuples containing the cell width and the min cell width
+    pub fn split_column_widths(&self) -> Vec<(f32, usize)> {
         let mut res = Vec::new();
         for cell in &self.cells {
             let val = cell.split_width();
+        
+            let min = (cell.min_width() as f32 / cell.col_span as f32) as usize;
+
             for _ in 0..cell.col_span {
-                res.push(val);
+                res.push((val, min));
             }
         }
         return res;

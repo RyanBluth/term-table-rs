@@ -5,10 +5,10 @@
 //!let mut table = term_table::Table::new();
 //!table.max_column_width = 40;
 //!
-//!table.style = term_table::TableStyle::extended(); 
+//!table.style = term_table::TableStyle::extended();
 //!table.add_row(term_table::row::Row::new(vec![
 //!    term_table::cell::Cell::new_with_alignment("This is some centered text", 2, term_table::cell::Alignment::Center)
-//!])); 
+//!]));
 //!table.add_row(term_table::row::Row::new(vec![
 //!    term_table::cell::Cell::new("This is left aligned text", 1),
 //!    term_table::cell::Cell::new_with_alignment("This is right aligned text", 1, term_table::cell::Alignment::Right)
@@ -38,15 +38,15 @@
 //! ╚═════════════════════════════════════════════════════════════════════════════════╝
 //!</pre>
 
-
 extern crate wcwidth;
 
-pub mod row;
 pub mod cell;
+pub mod row;
 
 use row::Row;
 
 use std::cmp::{max, min};
+use std::collections::HashMap;
 
 /// Represents the vertical postion of a row
 #[derive(Eq, PartialEq, Copy, Clone)]
@@ -90,9 +90,8 @@ pub struct TableStyle {
 }
 
 impl TableStyle {
-
     /// Basic terminal table style
-    /// 
+    ///
     ///# Example
     ///
     ///<pre>
@@ -124,7 +123,7 @@ impl TableStyle {
     }
 
     /// Table style using extended character set
-    /// 
+    ///
     ///# Example
     ///
     ///<pre>
@@ -156,7 +155,7 @@ impl TableStyle {
     }
 
     /// Table style comprised of null characters
-    /// 
+    ///
     ///# Example
     ///
     ///<pre>
@@ -185,7 +184,7 @@ impl TableStyle {
         };
     }
 
-    /// Returns the start character of a table style based on the 
+    /// Returns the start character of a table style based on the
     /// vertical position of the row
     fn start_for_position(&self, pos: RowPosition) -> char {
         match pos {
@@ -195,7 +194,7 @@ impl TableStyle {
         }
     }
 
-    /// Returns the end character of a table style based on the 
+    /// Returns the end character of a table style based on the
     /// vertical position of the row
     fn end_for_position(&self, pos: RowPosition) -> char {
         match pos {
@@ -205,7 +204,7 @@ impl TableStyle {
         }
     }
 
-    /// Returns the intersect character of a table style based on the 
+    /// Returns the intersect character of a table style based on the
     /// vertical position of the row
     fn intersect_for_position(&self, pos: RowPosition) -> char {
         match pos {
@@ -238,8 +237,10 @@ impl TableStyle {
 pub struct Table<'data> {
     pub rows: Vec<Row<'data>>,
     pub style: TableStyle,
-    /// The maxium width of each column. Defults to `std::usize::max`
+    /// The maximum width of all columns. Overriden by values in column_widths. Defults to `std::usize::max`
     pub max_column_width: usize,
+    /// The maxium widths of specific columns. Override max_column
+    pub max_column_widths: HashMap<usize, usize>,
 }
 
 impl<'data> Table<'data> {
@@ -248,7 +249,20 @@ impl<'data> Table<'data> {
             rows: Vec::new(),
             style: TableStyle::extended(),
             max_column_width: std::usize::MAX,
+            max_column_widths: HashMap::new(),
         };
+    }
+
+    /// Set the max width of a paticular column
+    pub fn set_max_column_width(&mut self, column_index: usize, width: usize) {
+        self.max_column_widths.insert(column_index, width);
+    }
+
+    /// Set the max widths of specific columns
+    pub fn set_max_column_widths(&mut self, index_width_pairs: Vec<(usize, usize)>) {
+        for pair in index_width_pairs {
+            self.max_column_widths.insert(pair.0, pair.1);
+        }
     }
 
     /// Simply adds a row to the rows Vec
@@ -302,15 +316,17 @@ impl<'data> Table<'data> {
         for row in &self.rows {
             num_columns = max(row.num_columns(), num_columns);
         }
-
         let mut max_widths: Vec<usize> = vec![0; num_columns];
+        let mut min_widths: Vec<usize> = vec![0; num_columns];
         for row in &self.rows {
             let column_widths = row.split_column_widths();
             for i in 0..column_widths.len() {
-                max_widths[i] = min(
-                    self.max_column_width,
-                    max(max_widths[i], column_widths[i] as usize),
-                );
+                min_widths[i] = max(min_widths[i], column_widths[i].1);
+                let mut max_width = *self.max_column_widths
+                    .get(&i)
+                    .unwrap_or(&self.max_column_width);
+                max_width = max(min_widths[i] as usize, max_width);
+                max_widths[i] = min(max_width, max(max_widths[i], column_widths[i].0 as usize));
             }
         }
         return max_widths;
@@ -325,94 +341,93 @@ impl<'data> Table<'data> {
 #[cfg(test)]
 mod test {
 
-    use cell::{Alignment, Cell};
-    use row::Row;
     use Table;
     use TableStyle;
+    use cell::{Alignment, Cell};
+    use row::Row;
 
     #[test]
     fn simple_table_style() {
-
         let mut table = Table::new();
         table.max_column_width = 40;
-        
-        table.style = TableStyle::simple(); 
+
+        table.style = TableStyle::simple();
 
         table.add_row(Row::new(vec![
-            Cell::new_with_alignment("This is some centered text", 2, Alignment::Center)
-        ])); 
-
-        table.add_row(Row::new(vec![
-            Cell::new("This is left aligned text", 1),
-            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+            Cell::new_with_alignment("This is some centered text", 2, Alignment::Center),
         ]));
 
-         table.add_row(Row::new(vec![
+        table.add_row(Row::new(vec![
             Cell::new("This is left aligned text", 1),
-            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+        ]));
+
+        table.add_row(Row::new(vec![
+            Cell::new("This is left aligned text", 1),
+            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
         ]));
 
         table.add_row(Row::new(vec![
             Cell::new("This is some really really really really really really really really really that is going to wrap to the next line", 2),
-        ]));   
+        ]));
 
         println!("{}", table.as_string());
     }
 
     #[test]
     fn extended_table_style() {
-
         let mut table = Table::new();
         table.max_column_width = 40;
-        
-        table.style = TableStyle::extended(); 
+
+        table.set_max_column_widths(vec![(0, 1), (1, 1)]);
+
+        table.style = TableStyle::extended();
 
         table.add_row(Row::new(vec![
-            Cell::new_with_alignment("This is some centered text", 2, Alignment::Center)
-        ])); 
-
-        table.add_row(Row::new(vec![
-            Cell::new("This is left aligned text", 1),
-            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+            Cell::new_with_alignment("This is some centered text", 2, Alignment::Center),
         ]));
 
-         table.add_row(Row::new(vec![
+        table.add_row(Row::new(vec![
             Cell::new("This is left aligned text", 1),
-            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+        ]));
+
+        table.add_row(Row::new(vec![
+            Cell::new("This is left aligned text", 1),
+            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
         ]));
 
         table.add_row(Row::new(vec![
             Cell::new("This is some really really really really really really really really really that is going to wrap to the next line", 2),
-        ]));   
+        ]));
 
         println!("{}", table.as_string());
     }
 
-     #[test]
+    #[test]
     fn blank_table_style() {
-
         let mut table = Table::new();
         table.max_column_width = 40;
-        
-        table.style = TableStyle::blank(); 
+
+        table.style = TableStyle::blank();
 
         table.add_row(Row::new(vec![
-            Cell::new_with_alignment("This is some centered text", 2, Alignment::Center)
-        ])); 
-
-        table.add_row(Row::new(vec![
-            Cell::new("This is left aligned text", 1),
-            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+            Cell::new_with_alignment("This is some centered text", 2, Alignment::Center),
         ]));
 
-         table.add_row(Row::new(vec![
+        table.add_row(Row::new(vec![
             Cell::new("This is left aligned text", 1),
-            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+        ]));
+
+        table.add_row(Row::new(vec![
+            Cell::new("This is left aligned text", 1),
+            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
         ]));
 
         table.add_row(Row::new(vec![
             Cell::new("This is some really really really really really really really really really that is going to wrap to the next line", 2),
-        ]));   
+        ]));
 
         println!("{}", table.as_string());
     }
@@ -420,7 +435,7 @@ mod test {
     #[test]
     fn complex_table() {
         let mut table = Table::new();
-        //table.max_column_width = 10;
+
         table.add_row(Row::new(vec![
             Cell::new("Col*1*Span*2", 2),
             Cell::new("Col 2 Span 1", 1),
