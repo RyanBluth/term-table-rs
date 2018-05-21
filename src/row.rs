@@ -59,9 +59,9 @@ impl<'data> Row<'data> {
                         let mut padding = 0;
                         let str_width = match str_width(wrapped_cells[i][h].as_str()) {
                             Some(w) => w,
-                            None => 0,
+                            None => wrapped_cells[i][h].chars().count(),
                         };
-                        if cell_span > str_width {
+                        if cell_span >= str_width {
                             padding += cell_span - str_width;
                             if cell.col_span > 1 {
                                 padding += char_width(style.vertical).unwrap_or_default() as usize

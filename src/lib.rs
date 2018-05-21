@@ -398,7 +398,7 @@ mod test {
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+            Cell::new("This is some really really really really really really really really really that is going to wrap to the next line\n1\n2", 2),
         ]));
 
         println!("{}", table.as_string());
