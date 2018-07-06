@@ -27,10 +27,10 @@ pub struct Cell<'data> {
 impl<'data> Cell<'data> {
     pub fn new<T>(data: T, col_span: usize) -> Cell<'data>
     where
-        T: Into<Cow<'data, str>>,
+        T: ToString
     {
         return Cell {
-            data: data.into(),
+            data: data.to_string().into(),
             col_span: col_span,
             alignment: Alignment::Left,
             pad_content: true,
@@ -39,10 +39,10 @@ impl<'data> Cell<'data> {
 
     pub fn new_with_alignment<T>(data: T, col_span: usize, alignment: Alignment) -> Cell<'data>
     where
-        T: Into<Cow<'data, str>>,
+        T: ToString,
     {
         return Cell {
-            data: data.into(),
+            data: data.to_string().into(),
             col_span: col_span,
             alignment: alignment,
             pad_content: true,
@@ -56,10 +56,10 @@ impl<'data> Cell<'data> {
         pad_content: bool,
     ) -> Cell<'data>
     where
-        T: Into<Cow<'data, str>>,
+        T: ToString,
     {
         return Cell {
-            data: data.into(),
+            data: data.to_string().into(),
             col_span: col_span,
             alignment: alignment,
             pad_content: pad_content,
@@ -135,14 +135,15 @@ impl<'data> Cell<'data> {
     }
 }
 
-impl<'data, T> From<&'data T> for Cell<'data>
-where
-    T: Display,
-{
-    fn from(x: &'data T) -> Cell<'data> {
-        return Cell::new(format!("{}", x), 1);
-    }
-}
+
+// impl<'data, T> From<T> for Cell<'data>
+// where
+//     T: Display,
+// {
+//     fn from(x: T) -> Cell<'data> {
+//         return Cell::new(format!("{}", x), 1);
+//     }
+// }
 
 impl<'data> Display for Cell<'data> {
     fn fmt(&self, f: &mut Formatter) -> Result {
