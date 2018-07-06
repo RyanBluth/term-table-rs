@@ -78,4 +78,4 @@ Those styles looks like this
 
 ## Column Widths
 
-It is possible to control the maximum width of table columns. The `max_column_width` property of `Table` can be set to restrict the width of all cells. The `set_max_column_width` function of `Table` can be used to set the max width of a specific column. The `set_max_column_widths` function provides the ability to set the width of multiple columns by passing in a `Vec` of tuples containing an index and width.6
+It is possible to control the maximum width of table columns. The `max_column_width` property of `Table` can be set to restrict the width of all cells. The `set_max_column_width` function of `Table` can be used to set the max width of a specific column. The `set_max_column_widths` function provides the ability to set the width of multiple columns by passing in a `Vec` of tuples containing an index and width.
