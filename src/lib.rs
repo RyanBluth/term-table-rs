@@ -38,6 +38,9 @@
 //! ╚═════════════════════════════════════════════════════════════════════════════════╝
 //!</pre>
 
+#[macro_use]
+extern crate lazy_static;
+
 extern crate wcwidth;
 extern crate regex;
 

@@ -6,6 +6,7 @@ use wcwidth::{char_width, str_width};
 use regex::Regex;
 use std::borrow::Borrow;
 
+
 /// Represents the horizontal alignment of content within a cell.
 #[derive(Clone, Copy)]
 pub enum Alignment {
@@ -134,21 +135,16 @@ impl<'data> Cell<'data> {
     }
 }
 
-pub fn string_width(string:&String) -> usize{
-    // Taken from https://github.com/mitsuhiko/console
-    let re = Regex::new(r"[\x1b\x9b][\[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-PRZcf-nqry=><]").unwrap();
-    let stripped = re.replace_all(string.as_str(), "");
-    return str_width(stripped.borrow()).unwrap_or_default();
+// Taken from https://github.com/mitsuhiko/console
+lazy_static! {
+    static ref STRIP_ANSI_RE: Regex = Regex::new(
+        r"[\x1b\x9b][\[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-PRZcf-nqry=><]").unwrap();
 }
 
-// impl<'data, T> From<T> for Cell<'data>
-// where
-//     T: Display,
-// {
-//     fn from(x: T) -> Cell<'data> {
-//         return Cell::new(format!("{}", x), 1);
-//     }
-// }
+pub fn string_width(string:&String) -> usize{
+    let stripped = STRIP_ANSI_RE.replace_all(string.as_str(), "");
+    return str_width(stripped.borrow()).unwrap_or_default();
+}
 
 impl<'data> Display for Cell<'data> {
     fn fmt(&self, f: &mut Formatter) -> Result {

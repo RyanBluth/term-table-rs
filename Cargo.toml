@@ -1,6 +1,6 @@
 [package]
 name = "term-table"
-version = "0.1.4"
+version = "0.1.5"
 authors = ["Ryan Bluth <ryanbluth93@gmail.com>"]
 description = "Tables for CLI apps"
 license = "MIT" 
@@ -9,3 +9,4 @@ repository = "https://github.com/RyanBluth/term-table-rs"
 [dependencies]
 "wcwidth" = "1.0.1"
 "regex" = "1.0.1"
+lazy_static = "1.0"

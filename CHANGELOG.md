@@ -1,3 +1,7 @@
+# 0.1.5
+
+Ansi characters are now stripped off when determining string lenghts
+
 # 0.1.4
 
 Cell new methods now take ToString for data as opposed to Into<Cow<'data, &str>>
