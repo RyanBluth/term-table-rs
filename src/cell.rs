@@ -2,7 +2,9 @@ use std;
 use std::borrow::Cow;
 use std::cmp;
 use std::fmt::{Display, Formatter, Result};
-use wcwidth::{char_width};
+use wcwidth::{char_width, str_width};
+use regex::Regex;
+use std::borrow::Borrow;
 
 /// Represents the horizontal alignment of content within a cell.
 #[derive(Clone, Copy)]
@@ -133,11 +135,10 @@ impl<'data> Cell<'data> {
 }
 
 pub fn string_width(string:&String) -> usize{
-    let mut size = 0;
-    for c in string.chars(){
-        size += char_width(c).unwrap_or_default() as usize;
-    }
-    return size;
+    // Taken from https://github.com/chalk/ansi-regex/blob/master/index.js
+    let re = Regex::new(r"[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[a-zA-Z\\d]*)*)?\\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PRZcf-ntqry=><~]))").unwrap();
+    let stripped = re.replace_all(string.as_str(), "$");
+    return str_width(stripped.borrow()).unwrap_or_default();
 }
 
 // impl<'data, T> From<T> for Cell<'data>

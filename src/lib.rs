@@ -39,6 +39,7 @@
 //!</pre>
 
 extern crate wcwidth;
+extern crate regex;
 
 pub mod cell;
 pub mod row;
