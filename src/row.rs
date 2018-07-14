@@ -1,7 +1,7 @@
-use cell::{Alignment, Cell};
+use cell::{Alignment, Cell, string_width};
 use {RowPosition, TableStyle};
 use std::cmp::max;
-use wcwidth::{char_width, str_width};
+use wcwidth::{char_width};
 
 /// A set of table cells
 pub struct Row<'data> {
@@ -57,10 +57,7 @@ impl<'data> Row<'data> {
                 for h in 0..max_row_span {
                     if wrapped_cells[i].len() > h {
                         let mut padding = 0;
-                        let str_width = match str_width(wrapped_cells[i][h].as_str()) {
-                            Some(w) => w,
-                            None => wrapped_cells[i][h].chars().count(),
-                        };
+                        let str_width = string_width(&wrapped_cells[i][h]);
                         if cell_span >= str_width {
                             padding += cell_span - str_width;
                             if cell.col_span > 1 {

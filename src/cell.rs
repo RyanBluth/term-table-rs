@@ -2,7 +2,7 @@ use std;
 use std::borrow::Cow;
 use std::cmp;
 use std::fmt::{Display, Formatter, Result};
-use wcwidth::{char_width, str_width};
+use wcwidth::{char_width};
 
 /// Represents the horizontal alignment of content within a cell.
 #[derive(Clone, Copy)]
@@ -73,10 +73,7 @@ impl<'data> Cell<'data> {
         let wrapped = self.wrap_to_width(std::usize::MAX);
         let mut max = 0;
         for s in wrapped {
-            let str_width = match str_width(s.as_str()) {
-                Some(w) => w,
-                None => 0,
-            };
+            let str_width = string_width(&s);
             max = cmp::max(max, str_width);
         }
         return max + match self.pad_content{
@@ -115,7 +112,7 @@ impl<'data> Cell<'data> {
         let mut buf = String::new();
         buf.push(pad_char);
         for c in self.data.chars().enumerate() {
-            if str_width(buf.as_str()).unwrap_or(1) as usize
+            if string_width(&buf) as usize
                 >= width - char_width(pad_char).unwrap_or(1) as usize
                 || c.1 == '\n'
             {
@@ -135,6 +132,13 @@ impl<'data> Cell<'data> {
     }
 }
 
+pub fn string_width(string:&String) -> usize{
+    let mut size = 0;
+    for c in string.chars(){
+        size += char_width(c).unwrap_or_default() as usize;
+    }
+    return size;
+}
 
 // impl<'data, T> From<T> for Cell<'data>
 // where
