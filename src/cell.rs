@@ -135,7 +135,7 @@ impl<'data> Cell<'data> {
 }
 
 pub fn string_width(string:&String) -> usize{
-    // Taken from https://github.com/chalk/ansi-regex/blob/master/index.js
+    // Taken from https://github.com/mitsuhiko/console
     let re = Regex::new(r"[\x1b\x9b][\[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-PRZcf-nqry=><]").unwrap();
     let stripped = re.replace_all(string.as_str(), "");
     return str_width(stripped.borrow()).unwrap_or_default();
