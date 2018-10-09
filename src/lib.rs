@@ -158,6 +158,19 @@ impl TableStyle {
         };
     }
 
+
+    /// <pre>
+    /// ┌─────────────────────────────────────────────────────────────────────────────────┐
+    /// │                            This is some centered text                           │
+    /// ├────────────────────────────────────────┬────────────────────────────────────────┤
+    /// │ This is left aligned text              │             This is right aligned text │
+    /// ├────────────────────────────────────────┼────────────────────────────────────────┤
+    /// │ This is left aligned text              │             This is right aligned text │
+    /// ├────────────────────────────────────────┴────────────────────────────────────────┤
+    /// │ This is some really really really really really really really really really tha │
+    /// │ t is going to wrap to the next line                                             │
+    /// └─────────────────────────────────────────────────────────────────────────────────┘
+    /// </pre>
     pub fn thin() -> TableStyle {
         return TableStyle {
             top_left_corner: '┌',
@@ -174,6 +187,18 @@ impl TableStyle {
         };
     }
 
+    ///  <pre>
+    /// ╭─────────────────────────────────────────────────────────────────────────────────╮
+    /// │                            This is some centered text                           │
+    /// ├────────────────────────────────────────┬────────────────────────────────────────┤
+    /// │ This is left aligned text              │             This is right aligned text │
+    /// ├────────────────────────────────────────┼────────────────────────────────────────┤
+    /// │ This is left aligned text              │             This is right aligned text │
+    /// ├────────────────────────────────────────┴────────────────────────────────────────┤
+    /// │ This is some really really really really really really really really really tha │
+    /// │ t is going to wrap to the next line                                             │
+    /// ╰─────────────────────────────────────────────────────────────────────────────────╯
+    /// </pre>
     pub fn rounded() -> TableStyle {
         return TableStyle {
             top_left_corner: '╭',
@@ -189,6 +214,20 @@ impl TableStyle {
             horizontal: '─',
         };
     }
+
+
+    /// <pre>
+    /// ╔─────────────────────────────────────────────────────────────────────────────────╗
+    /// │                            This is some centered text                           │
+    /// ╠────────────────────────────────────────╦────────────────────────────────────────╣
+    /// │ This is left aligned text              │             This is right aligned text │
+    /// ╠────────────────────────────────────────┼────────────────────────────────────────╣
+    /// │ This is left aligned text              │             This is right aligned text │
+    /// ╠────────────────────────────────────────╩────────────────────────────────────────╣
+    /// │ This is some really really really really really really really really really tha │
+    /// │ t is going to wrap to the next line                                             │
+    /// ╚─────────────────────────────────────────────────────────────────────────────────╝
+    /// </pre>
 
     pub fn elegant() -> TableStyle {
         return TableStyle {
@@ -483,6 +522,91 @@ mod test {
 
         println!("{}", table.as_string());
     }
+
+    #[test]
+    fn elegant_table_style() {
+        let mut table = Table::new();
+        table.max_column_width = 40;
+
+        table.style = TableStyle::elegant();
+
+        table.add_row(Row::new(vec![
+            Cell::new_with_alignment("This is some centered text", 2, Alignment::Center),
+        ]));
+
+        table.add_row(Row::new(vec![
+            Cell::new("This is left aligned text", 1),
+            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+        ]));
+
+        table.add_row(Row::new(vec![
+            Cell::new("This is left aligned text", 1),
+            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+        ]));
+
+        table.add_row(Row::new(vec![
+            Cell::new("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+        ]));
+
+        println!("{}", table.as_string());
+    }
+
+    #[test]
+    fn thin_table_style() {
+        let mut table = Table::new();
+        table.max_column_width = 40;
+
+        table.style = TableStyle::thin();
+
+        table.add_row(Row::new(vec![
+            Cell::new_with_alignment("This is some centered text", 2, Alignment::Center),
+        ]));
+
+        table.add_row(Row::new(vec![
+            Cell::new("This is left aligned text", 1),
+            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+        ]));
+
+        table.add_row(Row::new(vec![
+            Cell::new("This is left aligned text", 1),
+            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+        ]));
+
+        table.add_row(Row::new(vec![
+            Cell::new("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+        ]));
+
+        println!("{}", table.as_string());
+    }
+
+    #[test]
+    fn rounded_table_style() {
+        let mut table = Table::new();
+        table.max_column_width = 40;
+
+        table.style = TableStyle::rounded();
+
+        table.add_row(Row::new(vec![
+            Cell::new_with_alignment("This is some centered text", 2, Alignment::Center),
+        ]));
+
+        table.add_row(Row::new(vec![
+            Cell::new("This is left aligned text", 1),
+            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+        ]));
+
+        table.add_row(Row::new(vec![
+            Cell::new("This is left aligned text", 1),
+            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+        ]));
+
+        table.add_row(Row::new(vec![
+            Cell::new("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+        ]));
+
+        println!("{}", table.as_string());
+    }
+
 
     #[test]
     fn complex_table() {
