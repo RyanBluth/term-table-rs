@@ -19,7 +19,7 @@
 //!]));
 //!table.add_row(term_table::row::Row::new(vec![
 //!    term_table::cell::Cell::new("This is some really really really really really really really really really that is going to wrap to the next line", 2),
-//!]));   
+//!]));
 //!println!("{}", table.as_string());
 //!```
 //!
@@ -155,6 +155,54 @@ impl TableStyle {
             intersection: '╬',
             vertical: '║',
             horizontal: '═',
+        };
+    }
+
+    pub fn thin() -> TableStyle {
+        return TableStyle {
+            top_left_corner: '┌',
+            top_right_corner: '┐',
+            bottom_left_corner: '└',
+            bottom_right_corner: '┘',
+            outer_left_vertical: '├',
+            outer_right_vertical: '┤',
+            outer_bottom_horizontal: '┴',
+            outer_top_horizontal: '┬',
+            intersection: '┼',
+            vertical: '│',
+            horizontal: '─',
+        };
+    }
+
+    pub fn rounded() -> TableStyle {
+        return TableStyle {
+            top_left_corner: '╭',
+            top_right_corner: '╮',
+            bottom_left_corner: '╰',
+            bottom_right_corner: '╯',
+            outer_left_vertical: '├',
+            outer_right_vertical: '┤',
+            outer_bottom_horizontal: '┴',
+            outer_top_horizontal: '┬',
+            intersection: '┼',
+            vertical: '│',
+            horizontal: '─',
+        };
+    }
+
+    pub fn elegant() -> TableStyle {
+        return TableStyle {
+            top_left_corner: '╔',
+            top_right_corner: '╗',
+            bottom_left_corner: '╚',
+            bottom_right_corner: '╝',
+            outer_left_vertical: '╠',
+            outer_right_vertical: '╣',
+            outer_bottom_horizontal: '╩',
+            outer_top_horizontal: '╦',
+            intersection: '┼',
+            vertical: '│',
+            horizontal: '─',
         };
     }
 
