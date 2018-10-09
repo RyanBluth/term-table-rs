@@ -7,7 +7,7 @@ fn main(){
     let mut table = Table::new();
     table.max_column_width = 40;
 
-    table.style = TableStyle::simple();
+    table.style = TableStyle::elegant();
 
     table.add_row(Row::new(vec![
         Cell::new_with_alignment("This is some centered text", 2, Alignment::Center)
