@@ -1,10 +1,13 @@
 [package]
 name = "term-table"
-version = "0.1.5"
+version = "0.1.6"
 authors = ["Ryan Bluth <ryanbluth93@gmail.com>"]
 description = "Tables for CLI apps"
 license = "MIT" 
 repository = "https://github.com/RyanBluth/term-table-rs"
+readme = "README.md"
+categories = ["command-line-interface"]
+keywords = ["table", "cli", "terminal"]
 
 [dependencies]
 "wcwidth" = "1.0.1"

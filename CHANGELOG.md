@@ -1,3 +1,7 @@
+# 0.1.6
+
+New table styles have been added 
+
 # 0.1.5
 
 Ansi characters are now stripped off when determining string lenghts
