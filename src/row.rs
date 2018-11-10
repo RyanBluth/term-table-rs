@@ -23,7 +23,7 @@ impl<'data> Row<'data> {
     }
 
     /// Formats a row based on the provided table style
-    pub fn format(&self, max_widths: &Vec<usize>, style: &TableStyle) -> String {
+    pub fn format(&self, column_widths: &Vec<usize>, style: &TableStyle) -> String {
         let mut buf = String::new();
 
         // Since a cell can span multiple columns we need to track
@@ -44,7 +44,7 @@ impl<'data> Row<'data> {
             // Iterate from 0 to the cell's col_span and add up all the max width
             // values for each column so we can properly pad the cell content later
             for j in 0..cell.col_span {
-                width += max_widths[j + spanned_columns];
+                width += column_widths[j + spanned_columns];
             }
             // Wrap to the total width - col_span to account for separators
             let wrapped_cell = cell.wrapped_content(width + cell.col_span - 1);
@@ -53,21 +53,28 @@ impl<'data> Row<'data> {
             spanned_columns += cell.col_span;
         }
 
+        // reset spanned_columns so we can reuse it in the next loop
         spanned_columns = 0;
 
+        // Row lines to combine into the final string at the end
         let mut lines = vec![String::new(); row_height];
 
-        for i in 0..max_widths.len() {
-            if self.cells.len() > i {
+        for col_idx in 0..column_widths.len() {
+            // Check to see if we actually have a cell for the column index
+            // Otherwise we will just need to print out empty space as filler
+            if self.cells.len() > col_idx {
+                // Number of characters spanned by column
                 let mut cell_span = 0;
-                let cell = &self.cells[i];
+                let cell = &self.cells[col_idx];
+                // Calculate the cell span by adding up the widths of the columns spanned by the cell
                 for c in 0..cell.col_span {
-                    cell_span += max_widths[spanned_columns + c];
+                    cell_span += column_widths[spanned_columns + c];
                 }
-                for h in 0..row_height {
-                    if wrapped_cells[i].len() > h {
+                for line_idx in 0..row_height {
+                    // Check to see if the wrapped cell has a line for the line index
+                    if wrapped_cells[col_idx].len() > line_idx {
                         let mut padding = 0;
-                        let str_width = string_width(&wrapped_cells[i][h]);
+                        let str_width = string_width(&wrapped_cells[col_idx][line_idx]);
                         if cell_span >= str_width {
                             padding += cell_span - str_width;
                             if cell.col_span > 1 {
@@ -75,21 +82,22 @@ impl<'data> Row<'data> {
                                     * (cell.col_span - 1);
                             }
                         }
-                        lines[h].push_str(
+                        lines[line_idx].push_str(
                             format!(
                                 "{}{}",
                                 style.vertical,
-                                self.pad_string(padding, cell.alignment, &wrapped_cells[i][h])
+                                self.pad_string(padding, cell.alignment, &wrapped_cells[col_idx][line_idx])
                             ).as_str(),
                         );
                     } else {
-                        lines[h].push_str(
+                        // If the cell doesn't have any content for this line just fill it with empty space
+                        lines[line_idx].push_str(
                             format!(
                                 "{}{}",
                                 style.vertical,
                                 str::repeat(
                                     " ",
-                                    max_widths[spanned_columns] * cell.col_span + cell.col_span - 1
+                                    column_widths[spanned_columns] * cell.col_span + cell.col_span - 1
                                 )
                             ).as_str(),
                         );
@@ -102,13 +110,13 @@ impl<'data> Row<'data> {
                         format!(
                             "{}{}",
                             style.vertical,
-                            str::repeat(" ", max_widths[spanned_columns])
+                            str::repeat(" ", column_widths[spanned_columns])
                         ).as_str(),
                     );
                 }
                 spanned_columns += 1;
             }
-            if spanned_columns == max_widths.len() {
+            if spanned_columns == column_widths.len() {
                 break;
             }
         }
@@ -126,7 +134,7 @@ impl<'data> Row<'data> {
     /// The previous seperator is used to determine junction characters
     pub fn gen_separator(
         &self,
-        max_widths: &Vec<usize>,
+        column_widths: &Vec<usize>,
         style: &TableStyle,
         row_position: RowPosition,
         previous_separator: Option<String>,
@@ -145,7 +153,7 @@ impl<'data> Row<'data> {
 
         let mut current_column = 0;
 
-        for i in 0..max_widths.len() {
+        for i in 0..column_widths.len() {
             if i == next_intersection {
                 // Draw the intersection character for the start of the column
                 buf.push(style.intersect_for_position(row_position));
@@ -166,7 +174,7 @@ impl<'data> Row<'data> {
             }
             // Fill in all of the horizontal space
             buf.push_str(
-                str::repeat(style.horizontal.to_string().as_str(), max_widths[i]).as_str(),
+                str::repeat(style.horizontal.to_string().as_str(), column_widths[i]).as_str(),
             );
         }
 
