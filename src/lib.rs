@@ -474,8 +474,8 @@ mod test {
 | t is going to wrap to the next line                                             |
 +---------------------------------------------------------------------------------+
 ";        
-        assert_eq!(expected, table.as_string());
         println!("{}", table.as_string());
+        assert_eq!(expected, table.as_string());
     }
 
     #[test]
@@ -595,8 +595,8 @@ mod test {
 ║ 2     ║
 ╚═══════╝
 ";
-        assert_eq!(expected, table.as_string());
         println!("{}", table.as_string());
+        assert_eq!(expected, table.as_string());
     }
 
     #[test]
@@ -635,8 +635,8 @@ mod test {
   t is going to wrap to the next line                                             
                                                                                    
 ";  
-        assert_eq!(expected, table.as_string());
         println!("{}", table.as_string());
+        assert_eq!(expected, table.as_string());
     }
 
     #[test]
@@ -676,8 +676,8 @@ mod test {
 │ t is going to wrap to the next line                                             │
 ╚─────────────────────────────────────────────────────────────────────────────────╝
 ";
-        assert_eq!(expected, table.as_string());
         println!("{}", table.as_string());
+        assert_eq!(expected, table.as_string());
     }
 
     #[test]
@@ -716,8 +716,8 @@ mod test {
 │ t is going to wrap to the next line                                             │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ";
-        assert_eq!(expected, table.as_string());
         println!("{}", table.as_string());
+        assert_eq!(expected, table.as_string());
     }
 
     #[test]
@@ -757,8 +757,8 @@ mod test {
 │ t is going to wrap to the next line                                             │
 ╰─────────────────────────────────────────────────────────────────────────────────╯
 ";
-        assert_eq!(expected, table.as_string());
         println!("{}", table.as_string());
+        assert_eq!(expected, table.as_string());
     }
 
 

@@ -59,29 +59,46 @@ impl<'data> Row<'data> {
         // Row lines to combine into the final string at the end
         let mut lines = vec![String::new(); row_height];
 
+        // We need to iterate over all of the column widths
+        // We may not have as many cells as column widths, or the cells may not even span
+        // as many columns as are in column widths. In that case weill will create empty cells
         for col_idx in 0..column_widths.len() {
             // Check to see if we actually have a cell for the column index
             // Otherwise we will just need to print out empty space as filler
             if self.cells.len() > col_idx {
                 // Number of characters spanned by column
                 let mut cell_span = 0;
+            
+                // Get the cell using the column index
+                // 
+                // This is a little bit confusing because cells and columns aren't always one to one
+                // We may have fewer cells than columns or some cells may span multiple columns
+                // If there are fewer cells than columns we just end drawing empty cells in the else block
+                // If there are fewer cells than columns but they span the total number of columns we just break out
+                // of the outer for loop at the end. We know how many cells we've spanned by adding the cell's col_span to spanned_columns
                 let cell = &self.cells[col_idx];
                 // Calculate the cell span by adding up the widths of the columns spanned by the cell
                 for c in 0..cell.col_span {
                     cell_span += column_widths[spanned_columns + c];
                 }
+                // Since cells can wrap we need to loop over all of the lines
                 for line_idx in 0..row_height {
                     // Check to see if the wrapped cell has a line for the line index
                     if wrapped_cells[col_idx].len() > line_idx {
+                        // We may need to pad the cell if it's contents are not as wide as some other cell in the column
                         let mut padding = 0;
+                        // We need to calculate the string_width because some characters take up extra space and we need to 
+                        // ignore ANSI characters
                         let str_width = string_width(&wrapped_cells[col_idx][line_idx]);
                         if cell_span >= str_width {
                             padding += cell_span - str_width;
+                            // If the cols_span is greater than one we need to add extra padding for the missing vertical characters
                             if cell.col_span > 1 {
                                 padding += char_width(style.vertical).unwrap_or_default() as usize
                                     * (cell.col_span - 1);
                             }
                         }
+                        // Finally we can push the string into the lines vec
                         lines[line_idx].push_str(
                             format!(
                                 "{}{}",
@@ -103,10 +120,13 @@ impl<'data> Row<'data> {
                         );
                     }
                 }
+                // Keep track of how many columns we have actually spanned since
+                // cells can be wider than a single column
                 spanned_columns += cell.col_span;
             } else {
-                for h in 0..row_height {
-                    lines[h].push_str(
+                // If we don't have a cell for the coulumn then we just create an empty one
+                for line in 0..row_height {
+                    lines[line].push_str(
                         format!(
                             "{}{}",
                             style.vertical,
@@ -114,12 +134,15 @@ impl<'data> Row<'data> {
                         ).as_str(),
                     );
                 }
+                // Add one to the spanned column since the empty space is basically a cell
                 spanned_columns += 1;
             }
+            // If we have spanned as many columns as there are then just break out of the loop
             if spanned_columns == column_widths.len() {
                 break;
             }
         }
+        // Finally add all the lines together to create the row content
         for line in &lines {
             buf.push_str(line.clone().as_str());
             buf.push(style.vertical);
