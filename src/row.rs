@@ -1,7 +1,7 @@
-use cell::{Alignment, Cell, string_width};
-use {RowPosition, TableStyle};
+use cell::{string_width, Alignment, Cell};
 use std::cmp::max;
-use wcwidth::{char_width};
+use wcwidth::char_width;
+use {RowPosition, TableStyle};
 
 /// A set of table cells
 pub struct Row<'data> {
@@ -26,26 +26,36 @@ impl<'data> Row<'data> {
     pub fn format(&self, max_widths: &Vec<usize>, style: &TableStyle) -> String {
         let mut buf = String::new();
 
+        // Since a cell can span multiple columns we need to track
+        // how many columns we have actually spand. We cannot just depend
+        // on the index of the current cell when iterating
         let mut spanned_columns = 0;
 
-        let mut max_row_span = 0;
+        // The height of the row determined by how many times a cell had to wrap
+        let mut row_height = 0;
+
+        // Wrapped cell content
         let mut wrapped_cells = Vec::new();
 
-        for i in 0..self.cells.len() {
-            let cell = &self.cells[i];
+        // The first thing we do is wrap the cells if their
+        // content is greater than the max width of the column they are in
+        for cell in &self.cells {
             let mut width = 0;
+            // Iterate from 0 to the cell's col_span and add up all the max width
+            // values for each column so we can properly pad the cell content later
             for j in 0..cell.col_span {
                 width += max_widths[j + spanned_columns];
             }
-            let wrapped_cell = cell.wrap_to_width(width + cell.col_span - 1);
-            max_row_span = max(max_row_span, wrapped_cell.len());
+            // Wrap to the total width - col_span to account for separators
+            let wrapped_cell = cell.wrapped_content(width + cell.col_span - 1);
+            row_height = max(row_height, wrapped_cell.len());
             wrapped_cells.push(wrapped_cell);
             spanned_columns += cell.col_span;
         }
 
         spanned_columns = 0;
 
-        let mut lines = vec![String::new(); max_row_span];
+        let mut lines = vec![String::new(); row_height];
 
         for i in 0..max_widths.len() {
             if self.cells.len() > i {
@@ -54,7 +64,7 @@ impl<'data> Row<'data> {
                 for c in 0..cell.col_span {
                     cell_span += max_widths[spanned_columns + c];
                 }
-                for h in 0..max_row_span {
+                for h in 0..row_height {
                     if wrapped_cells[i].len() > h {
                         let mut padding = 0;
                         let str_width = string_width(&wrapped_cells[i][h]);
@@ -69,11 +79,7 @@ impl<'data> Row<'data> {
                             format!(
                                 "{}{}",
                                 style.vertical,
-                                self.format_cell_text_with_padding(
-                                    padding,
-                                    cell.alignment,
-                                    &wrapped_cells[i][h]
-                                )
+                                self.pad_string(padding, cell.alignment, &wrapped_cells[i][h])
                             ).as_str(),
                         );
                     } else {
@@ -91,7 +97,7 @@ impl<'data> Row<'data> {
                 }
                 spanned_columns += cell.col_span;
             } else {
-                for h in 0..max_row_span {
+                for h in 0..row_height {
                     lines[h].push_str(
                         format!(
                             "{}{}",
@@ -115,10 +121,9 @@ impl<'data> Row<'data> {
         return buf;
     }
 
-
     /// Generates the top separator for a row.
     ///
-    /// The previous seperator is used to determine junction characters 
+    /// The previous seperator is used to determine junction characters
     pub fn gen_separator(
         &self,
         max_widths: &Vec<usize>,
@@ -193,7 +198,7 @@ impl<'data> Row<'data> {
         };
     }
 
-    /// Returns a vector of split cell widths. 
+    /// Returns a vector of split cell widths.
     ///
     /// A split width is the cell's total width divided by it's col_span value.
     ///
@@ -203,7 +208,7 @@ impl<'data> Row<'data> {
         let mut res = Vec::new();
         for cell in &self.cells {
             let val = cell.split_width();
-        
+
             let min = (cell.min_width() as f32 / cell.col_span as f32) as usize;
 
             for _ in 0..cell.col_span {
@@ -221,12 +226,7 @@ impl<'data> Row<'data> {
     }
 
     /// Pads a string accoding to the provided alignment
-    fn format_cell_text_with_padding(
-        &self,
-        padding: usize,
-        alignment: Alignment,
-        text: &String,
-    ) -> String {
+    fn pad_string(&self, padding: usize, alignment: Alignment, text: &String) -> String {
         match alignment {
             Alignment::Left => return format!("{}{}", text, str::repeat(" ", padding)),
             Alignment::Right => return format!("{}{}", str::repeat(" ", padding), text),

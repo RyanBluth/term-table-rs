@@ -73,7 +73,7 @@ impl<'data> Cell<'data> {
     ///
     /// New line characters are taken into account during the calculation.
     pub fn width(&self) -> usize {
-        let wrapped = self.wrap_to_width(std::usize::MAX);
+        let wrapped = self.wrapped_content(std::usize::MAX);
         let mut max = 0;
         for s in wrapped {
             let str_width = string_width(&s);
@@ -106,7 +106,7 @@ impl<'data> Cell<'data> {
     /// Wraps the cell's content to the provided width.
     ///
     /// New line characters are taken into account.
-    pub fn wrap_to_width(&self, width: usize) -> Vec<String> {
+    pub fn wrapped_content(&self, width: usize) -> Vec<String> {
         let pad_char = match self.pad_content {
             true => ' ',
             false => '\0',
