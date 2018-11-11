@@ -7,18 +7,18 @@
 //!
 //!table.style = term_table::TableStyle::extended();
 //!table.add_row(term_table::row::Row::new(vec![
-//!    term_table::cell::Cell::new_with_alignment("This is some centered text", 2, term_table::cell::Alignment::Center)
+//!    term_table::table_cell::TableCell::new_with_alignment("This is some centered text", 2, term_table::table_cell::Alignment::Center)
 //!]));
 //!table.add_row(term_table::row::Row::new(vec![
-//!    term_table::cell::Cell::new("This is left aligned text"),
-//!    term_table::cell::Cell::new_with_alignment("This is right aligned text", 1, term_table::cell::Alignment::Right)
+//!    term_table::table_cell::TableCell::new("This is left aligned text"),
+//!    term_table::table_cell::TableCell::new_with_alignment("This is right aligned text", 1, term_table::table_cell::Alignment::Right)
 //!]));
 //! table.add_row(term_table::row::Row::new(vec![
-//!    term_table::cell::Cell::new("This is left aligned text"),
-//!    term_table::cell::Cell::new_with_alignment("This is right aligned text", 1, term_table::cell::Alignment::Right)
+//!    term_table::table_cell::TableCell::new("This is left aligned text"),
+//!    term_table::table_cell::TableCell::new_with_alignment("This is right aligned text", 1, term_table::table_cell::Alignment::Right)
 //!]));
 //!table.add_row(term_table::row::Row::new(vec![
-//!    term_table::cell::Cell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+//!    term_table::table_cell::TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
 //!]));
 //!println!("{}", table.as_string());
 //!```
@@ -44,7 +44,7 @@ extern crate lazy_static;
 extern crate wcwidth;
 extern crate regex;
 
-pub mod cell;
+pub mod table_cell;
 pub mod row;
 
 use row::Row;
@@ -434,7 +434,7 @@ mod test {
 
     use Table;
     use TableStyle;
-    use cell::{Alignment, Cell};
+    use table_cell::{Alignment, TableCell};
     use row::Row;
 
     #[test]
@@ -445,21 +445,21 @@ mod test {
         table.style = TableStyle::simple();
 
         table.add_row(Row::new(vec![
-            Cell::new_with_alignment("This is some centered text", 2, Alignment::Center),
+            TableCell::new_with_alignment("This is some centered text", 2, Alignment::Center),
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new("This is left aligned text"),
-            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+            TableCell::new("This is left aligned text"),
+            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new("This is left aligned text"),
-            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+            TableCell::new("This is left aligned text"),
+            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+            TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
         ]));
 
         let expected = 
@@ -488,21 +488,21 @@ mod test {
         table.style = TableStyle::extended();
 
         table.add_row(Row::new(vec![
-            Cell::new_with_alignment("This is some centered text", 2, Alignment::Center),
+            TableCell::new_with_alignment("This is some centered text", 2, Alignment::Center),
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new("This is left aligned text"),
-            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+            TableCell::new("This is left aligned text"),
+            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new("This is left aligned text"),
-            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+            TableCell::new("This is left aligned text"),
+            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line\n1\n2", 2),
+            TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line\n1\n2", 2),
         ]));
         
         let expected =
@@ -607,21 +607,21 @@ mod test {
         table.style = TableStyle::blank();
 
         table.add_row(Row::new(vec![
-            Cell::new_with_alignment("This is some centered text", 2, Alignment::Center),
+            TableCell::new_with_alignment("This is some centered text", 2, Alignment::Center),
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new("This is left aligned text"),
-            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+            TableCell::new("This is left aligned text"),
+            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new("This is left aligned text"),
-            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+            TableCell::new("This is left aligned text"),
+            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+            TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
         ]));
     let expected = 
 "                                                                                   
@@ -647,21 +647,21 @@ mod test {
         table.style = TableStyle::elegant();
 
         table.add_row(Row::new(vec![
-            Cell::new_with_alignment("This is some centered text", 2, Alignment::Center),
+            TableCell::new_with_alignment("This is some centered text", 2, Alignment::Center),
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new("This is left aligned text"),
-            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+            TableCell::new("This is left aligned text"),
+            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new("This is left aligned text"),
-            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+            TableCell::new("This is left aligned text"),
+            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+            TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
         ]));
 
         let expected = 
@@ -688,21 +688,21 @@ mod test {
         table.style = TableStyle::thin();
 
         table.add_row(Row::new(vec![
-            Cell::new_with_alignment("This is some centered text", 2, Alignment::Center),
+            TableCell::new_with_alignment("This is some centered text", 2, Alignment::Center),
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new("This is left aligned text"),
-            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+            TableCell::new("This is left aligned text"),
+            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new("This is left aligned text"),
-            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+            TableCell::new("This is left aligned text"),
+            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+            TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
         ]));
         let expected =
 "┌─────────────────────────────────────────────────────────────────────────────────┐
@@ -728,21 +728,21 @@ mod test {
         table.style = TableStyle::rounded();
 
         table.add_row(Row::new(vec![
-            Cell::new_with_alignment("This is some centered text", 2, Alignment::Center),
+            TableCell::new_with_alignment("This is some centered text", 2, Alignment::Center),
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new("This is left aligned text"),
-            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+            TableCell::new("This is left aligned text"),
+            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new("This is left aligned text"),
-            Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+            TableCell::new("This is left aligned text"),
+            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
         ]));
 
         table.add_row(Row::new(vec![
-            Cell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+            TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
         ]));
         
         let expected = 
@@ -767,37 +767,37 @@ mod test {
         let mut table = Table::new();
 
         table.add_row(Row::new(vec![
-            Cell::new_with_col_span("Col*1*Span*2", 2),
-            Cell::new("Col 2 Span 1"),
-            Cell::new_with_col_span("Col 3 Span 2", 2),
-            Cell::new("Col 4 Span 1"),
+            TableCell::new_with_col_span("Col*1*Span*2", 2),
+            TableCell::new("Col 2 Span 1"),
+            TableCell::new_with_col_span("Col 3 Span 2", 2),
+            TableCell::new("Col 4 Span 1"),
         ]));
         table.add_row(Row::new(vec![
-            Cell::new("Col 1 Span 1"),
-            Cell::new("Col 2 Span 1"),
-            Cell::new("Col 3 Span 1"),
-            Cell::new_with_col_span("Col 4 Span 1", 2),
+            TableCell::new("Col 1 Span 1"),
+            TableCell::new("Col 2 Span 1"),
+            TableCell::new("Col 3 Span 1"),
+            TableCell::new_with_col_span("Col 4 Span 1", 2),
         ]));
         table.add_row(Row::new(vec![
-            Cell::new("fasdaff"),
-            Cell::new("fff"),
-            Cell::new("fff"),
+            TableCell::new("fasdaff"),
+            TableCell::new("fff"),
+            TableCell::new("fff"),
         ]));
         table.add_row(Row::new(vec![
-            Cell::new_with_alignment("fasdff", 3, Alignment::Right),
-            Cell::new_with_col_span("fffdff", 4),
+            TableCell::new_with_alignment("fasdff", 3, Alignment::Right),
+            TableCell::new_with_col_span("fffdff", 4),
         ]));
         table.add_row(Row::new(vec![
-            Cell::new("fasdsaff"),
-            Cell::new("fff"),
-            Cell::new("f\nf\nf\nfff\nrrr\n\n\n"),
+            TableCell::new("fasdsaff"),
+            TableCell::new("fff"),
+            TableCell::new("f\nf\nf\nfff\nrrr\n\n\n"),
         ]));
-        table.add_row(Row::new(vec![Cell::new("fasdsaff")]));
+        table.add_row(Row::new(vec![TableCell::new("fasdsaff")]));
 
         let s = table.as_string().clone();
 
         table.add_row(Row::new(vec![
-            Cell::new_with_alignment(s, 3, Alignment::Left),
+            TableCell::new_with_alignment(s, 3, Alignment::Left),
         ]));
 
         let expected = 

@@ -1,11 +1,8 @@
-use std;
 use std::borrow::Cow;
 use std::cmp;
-use std::fmt::{Display, Formatter, Result};
 use wcwidth::{char_width, str_width};
 use regex::Regex;
 use std::borrow::Borrow;
-
 
 /// Represents the horizontal alignment of content within a cell.
 #[derive(Clone, Copy)]
@@ -20,19 +17,19 @@ pub enum Alignment {
 ///A cell may span multiple columns by setting the value of `col_span`.
 ///
 ///`pad_content` will add a space to either side of the cell's content.AsRef
-pub struct Cell<'data> {
+pub struct TableCell<'data> {
     pub data: Cow<'data, str>,
     pub col_span: usize,
     pub alignment: Alignment,
     pub pad_content: bool,
 }
 
-impl<'data> Cell<'data> {
-    pub fn new<T>(data: T) -> Cell<'data>
+impl<'data> TableCell<'data> {
+    pub fn new<T>(data: T) -> TableCell<'data>
     where
         T: ToString
     {
-        return Cell {
+        return TableCell {
             data: data.to_string().into(),
             col_span: 1,
             alignment: Alignment::Left,
@@ -40,11 +37,11 @@ impl<'data> Cell<'data> {
         };
     }
 
-    pub fn new_with_col_span<T>(data: T, col_span: usize) -> Cell<'data>
+    pub fn new_with_col_span<T>(data: T, col_span: usize) -> TableCell<'data>
     where
         T: ToString
     {
-        return Cell {
+        return TableCell {
             data: data.to_string().into(),
             col_span: col_span,
             alignment: Alignment::Left,
@@ -52,11 +49,11 @@ impl<'data> Cell<'data> {
         };
     }
 
-    pub fn new_with_alignment<T>(data: T, col_span: usize, alignment: Alignment) -> Cell<'data>
+    pub fn new_with_alignment<T>(data: T, col_span: usize, alignment: Alignment) -> TableCell<'data>
     where
         T: ToString,
     {
-        return Cell {
+        return TableCell {
             data: data.to_string().into(),
             col_span: col_span,
             alignment: alignment,
@@ -69,11 +66,11 @@ impl<'data> Cell<'data> {
         col_span: usize,
         alignment: Alignment,
         pad_content: bool,
-    ) -> Cell<'data>
+    ) -> TableCell<'data>
     where
         T: ToString,
     {
-        return Cell {
+        return TableCell {
             data: data.to_string().into(),
             col_span: col_span,
             alignment: alignment,
@@ -147,6 +144,12 @@ impl<'data> Cell<'data> {
     }
 }
 
+impl<'data, T> From<T> for TableCell<'data> where T: ToString{
+    fn from(other:T)-> Self{
+        return TableCell::new(other);
+    }
+}  
+
 // Taken from https://github.com/mitsuhiko/console
 lazy_static! {
     static ref STRIP_ANSI_RE: Regex = Regex::new(
@@ -159,8 +162,3 @@ pub fn string_width(string:&String) -> usize{
     return str_width(stripped.borrow()).unwrap_or_default();
 }
 
-impl<'data> Display for Cell<'data> {
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "{}", self.data)
-    }
-}

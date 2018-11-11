@@ -1,17 +1,17 @@
-use cell::{string_width, Alignment, Cell};
+use table_cell::{string_width, Alignment, TableCell};
 use std::cmp::max;
 use wcwidth::char_width;
 use {RowPosition, TableStyle};
 
 /// A set of table cells
 pub struct Row<'data> {
-    pub cells: Vec<Cell<'data>>,
+    pub cells: Vec<TableCell<'data>>,
 }
 
 impl<'data> Row<'data> {
     pub fn new<T>(cells: Vec<T>) -> Row<'data>
     where
-        T: Into<Cell<'data>>,
+        T: Into<TableCell<'data>>,
     {
         let mut row = Row { cells: vec![] };
 

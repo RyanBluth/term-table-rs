@@ -1,7 +1,7 @@
 extern crate term_table;
 use term_table::{Table,TableStyle};
 use term_table::{row::Row,
-    cell::{Alignment,Cell},
+    table_cell::{Alignment,TableCell},
 };
 fn main(){
     let mut table = Table::new();
@@ -10,21 +10,21 @@ fn main(){
     table.style = TableStyle::elegant();
 
     table.add_row(Row::new(vec![
-        Cell::new_with_alignment("This is some centered text", 2, Alignment::Center)
+        TableCell::new_with_alignment("This is some centered text", 2, Alignment::Center)
     ]));
 
     table.add_row(Row::new(vec![
-        Cell::new("This is left aligned text"),
-        Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+        TableCell::new("This is left aligned text"),
+        TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
     ]));
 
     table.add_row(Row::new(vec![
-        Cell::new("This is left aligned text"),
-        Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+        TableCell::new("This is left aligned text"),
+        TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
     ]));
 
     table.add_row(Row::new(vec![
-        Cell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+        TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
     ]));
 
     println!("{}", table.as_string());
