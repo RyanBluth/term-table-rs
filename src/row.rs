@@ -9,13 +9,14 @@ pub struct Row<'data> {
 }
 
 impl<'data> Row<'data> {
-    pub fn new<T>(cells: Vec<T>) -> Row<'data>
+    pub fn new<I, T>(cells:I) -> Row<'data>
     where
         T: Into<TableCell<'data>>,
+        I: IntoIterator<Item=T>
     {
         let mut row = Row { cells: vec![] };
 
-        for entry in cells {
+        for entry in cells.into_iter() {
             row.cells.push(entry.into());
         }
 
