@@ -14,21 +14,21 @@ table.max_column_width = 40;
 table.style = TableStyle::extended(); 
 
 table.add_row(Row::new(vec![
-    Cell::new_with_alignment("This is some centered text", 2, Alignment::Center)
+    TableCell::new_with_alignment("This is some centered text", 2, Alignment::Center)
 ])); 
 
 table.add_row(Row::new(vec![
-    Cell::new("This is left aligned text", 1),
-    Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+    TableCell::new("This is left aligned text", 1),
+    TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
 ]));
 
 table.add_row(Row::new(vec![
-    Cell::new("This is left aligned text", 1),
-    Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+    TableCell::new("This is left aligned text", 1),
+    TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
 ]));
 
 table.add_row(Row::new(vec![
-    Cell::new("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+    TableCell::new("This is some really really really really really really really really really that is going to wrap to the next line", 2),
 ]));   
 
 println!("{}", table.as_string());
@@ -78,4 +78,4 @@ Those styles looks like this
 
 ## Column Widths
 
-It is possible to control the maximum width of table columns. The `max_column_width` property of `Table` can be set to restrict the width of all cells. The `set_max_column_width` function of `Table` can be used to set the max width of a specific column. The `set_max_column_widths` function provides the ability to set the width of multiple columns by passing in a `Vec` of tuples containing an index and width.
+It is possible to control the maximum width of table columns. The `max_column_width` property of `Table` can be set to restrict the width of all TableCells. The `set_max_column_width` function of `Table` can be used to set the max width of a specific column. The `set_max_column_widths` function provides the ability to set the width of multiple columns by passing in a `Vec` of tuples containing an index and width.
