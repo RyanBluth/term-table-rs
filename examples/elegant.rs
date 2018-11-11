@@ -27,5 +27,5 @@ fn main(){
         TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
     ]));
 
-    println!("{}", table.as_string());
+    println!("{}", table.render());
 }

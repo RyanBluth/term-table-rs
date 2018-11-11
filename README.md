@@ -31,7 +31,7 @@ table.add_row(Row::new(vec![
     TableCell::new("This is some really really really really really really really really really that is going to wrap to the next line", 2),
 ]));   
 
-println!("{}", table.as_string());
+println!("{}", table.render());
 
 ```
 ### Here's the result

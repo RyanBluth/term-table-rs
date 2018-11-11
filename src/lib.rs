@@ -20,7 +20,7 @@
 //!table.add_row(term_table::row::Row::new(vec![
 //!    term_table::table_cell::TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
 //!]));
-//!println!("{}", table.as_string());
+//!println!("{}", table.render());
 //!```
 //!
 //!### This is the result
@@ -363,7 +363,7 @@ impl<'data> Table<'data> {
 
     /// Does all of the calculations to reformat the row based on it's current
     /// state and returns the result as a `String`
-    pub fn as_string(&mut self) -> String {
+    pub fn render(&mut self) -> String {
         let mut print_buffer = String::new();
         let max_widths = self.calculate_max_column_widths();
         let mut previous_separator = None;
@@ -474,8 +474,8 @@ mod test {
 | t is going to wrap to the next line                                             |
 +---------------------------------------------------------------------------------+
 ";        
-        println!("{}", table.as_string());
-        assert_eq!(expected, table.as_string());
+        println!("{}", table.render());
+        assert_eq!(expected, table.render());
     }
 
     #[test]
@@ -595,8 +595,8 @@ mod test {
 ║ 2     ║
 ╚═══════╝
 ";
-        println!("{}", table.as_string());
-        assert_eq!(expected, table.as_string());
+        println!("{}", table.render());
+        assert_eq!(expected, table.render());
     }
 
     #[test]
@@ -635,8 +635,8 @@ mod test {
   t is going to wrap to the next line                                             
                                                                                    
 ";  
-        println!("{}", table.as_string());
-        assert_eq!(expected, table.as_string());
+        println!("{}", table.render());
+        assert_eq!(expected, table.render());
     }
 
     #[test]
@@ -676,8 +676,8 @@ mod test {
 │ t is going to wrap to the next line                                             │
 ╚─────────────────────────────────────────────────────────────────────────────────╝
 ";
-        println!("{}", table.as_string());
-        assert_eq!(expected, table.as_string());
+        println!("{}", table.render());
+        assert_eq!(expected, table.render());
     }
 
     #[test]
@@ -716,8 +716,8 @@ mod test {
 │ t is going to wrap to the next line                                             │
 └─────────────────────────────────────────────────────────────────────────────────┘
 ";
-        println!("{}", table.as_string());
-        assert_eq!(expected, table.as_string());
+        println!("{}", table.render());
+        assert_eq!(expected, table.render());
     }
 
     #[test]
@@ -757,8 +757,8 @@ mod test {
 │ t is going to wrap to the next line                                             │
 ╰─────────────────────────────────────────────────────────────────────────────────╯
 ";
-        println!("{}", table.as_string());
-        assert_eq!(expected, table.as_string());
+        println!("{}", table.render());
+        assert_eq!(expected, table.render());
     }
 
 
@@ -794,7 +794,7 @@ mod test {
         ]));
         table.add_row(Row::new(vec![TableCell::new("fasdsaff")]));
 
-        let s = table.as_string().clone();
+        let s = table.render().clone();
 
         table.add_row(Row::new(vec![
             TableCell::new_with_alignment(s, 3, Alignment::Left),
@@ -844,7 +844,7 @@ mod test {
 ║                                                                                               ║        ║        ║                ║  ║
 ╚═══════════════════════════════════════════════════════════════════════════════════════════════╩════════╩════════╩════════════════╩══╝
 ";
-        assert_eq!(expected, table.as_string());
-        println!("{}", table.as_string());
+        assert_eq!(expected, table.render());
+        println!("{}", table.render());
     }
 }
