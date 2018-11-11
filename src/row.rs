@@ -95,7 +95,7 @@ impl<'data> Row<'data> {
                             // If the cols_span is greater than one we need to add extra padding for the missing vertical characters
                             if cell.col_span > 1 {
                                 padding += char_width(style.vertical).unwrap_or_default() as usize
-                                    * (cell.col_span - 1);
+                                    * (cell.col_span - 1); // Subtract one since we add a vertical character to the beginning
                             }
                         }
                         // Finally we can push the string into the lines vec

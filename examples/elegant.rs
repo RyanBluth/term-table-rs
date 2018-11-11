@@ -14,17 +14,17 @@ fn main(){
     ]));
 
     table.add_row(Row::new(vec![
-        Cell::new("This is left aligned text", 1),
+        Cell::new("This is left aligned text"),
         Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
     ]));
 
     table.add_row(Row::new(vec![
-        Cell::new("This is left aligned text", 1),
+        Cell::new("This is left aligned text"),
         Cell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
     ]));
 
     table.add_row(Row::new(vec![
-        Cell::new("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+        Cell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
     ]));
 
     println!("{}", table.as_string());

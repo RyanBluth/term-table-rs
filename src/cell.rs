@@ -28,7 +28,19 @@ pub struct Cell<'data> {
 }
 
 impl<'data> Cell<'data> {
-    pub fn new<T>(data: T, col_span: usize) -> Cell<'data>
+    pub fn new<T>(data: T) -> Cell<'data>
+    where
+        T: ToString
+    {
+        return Cell {
+            data: data.to_string().into(),
+            col_span: 1,
+            alignment: Alignment::Left,
+            pad_content: true,
+        };
+    }
+
+    pub fn new_with_col_span<T>(data: T, col_span: usize) -> Cell<'data>
     where
         T: ToString
     {
@@ -141,6 +153,7 @@ lazy_static! {
         r"[\x1b\x9b][\[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-PRZcf-nqry=><]").unwrap();
 }
 
+// The width of a string. Strips ansi characters
 pub fn string_width(string:&String) -> usize{
     let stripped = STRIP_ANSI_RE.replace_all(string.as_str(), "");
     return str_width(stripped.borrow()).unwrap_or_default();
