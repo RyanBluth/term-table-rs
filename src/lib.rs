@@ -363,7 +363,7 @@ impl<'data> Table<'data> {
 
     /// Does all of the calculations to reformat the row based on it's current
     /// state and returns the result as a `String`
-    pub fn render(&mut self) -> String {
+    pub fn render(&self) -> String {
         let mut print_buffer = String::new();
         let max_widths = self.calculate_max_column_widths();
         let mut previous_separator = None;
@@ -426,6 +426,13 @@ impl<'data> Table<'data> {
     /// Helper method for adding a line to a string buffer
     fn buffer_line(buffer: &mut String, line: &String) {
         buffer.push_str(format!("{}\n", line).as_str());
+    }
+}
+
+impl<'data> ToString for Table<'data>{
+
+    fn to_string(&self)->String{
+        return self.render();
     }
 }
 
