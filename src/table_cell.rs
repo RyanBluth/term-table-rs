@@ -43,9 +43,9 @@ impl<'data> TableCell<'data> {
     {
         return TableCell {
             data: data.to_string().into(),
-            col_span: col_span,
             alignment: Alignment::Left,
             pad_content: true,
+            col_span,
         };
     }
 
@@ -55,9 +55,9 @@ impl<'data> TableCell<'data> {
     {
         return TableCell {
             data: data.to_string().into(),
-            col_span: col_span,
-            alignment: alignment,
             pad_content: true,
+            col_span,
+            alignment,
         };
     }
 
@@ -72,9 +72,9 @@ impl<'data> TableCell<'data> {
     {
         return TableCell {
             data: data.to_string().into(),
-            col_span: col_span,
-            alignment: alignment,
-            pad_content: pad_content,
+            col_span,
+            alignment,
+            pad_content,
         };
     }
 
@@ -88,10 +88,12 @@ impl<'data> TableCell<'data> {
             let str_width = string_width(&s);
             max = cmp::max(max, str_width);
         }
-        return max + match self.pad_content{
-            true => 2 * char_width(' ').unwrap_or(1) as usize,
-            false => 0
-        }
+        return max + 
+            if self.pad_content{
+                2 * char_width(' ').unwrap_or(1) as usize
+            }else{
+                0
+            };
     }
 
     /// The width of the cell's content divided by its `col_span` value.
@@ -106,20 +108,18 @@ impl<'data> TableCell<'data> {
         for c in self.data.chars(){
             max_char_width = cmp::max(max_char_width, char_width(c).unwrap_or(1) as usize);
         }
-        return match self.pad_content{
-            true => max_char_width + char_width(' ').unwrap_or(1) as usize * 2,
-            false => max_char_width
-        }
+        return if self.pad_content{
+            max_char_width + char_width(' ').unwrap_or(1) as usize * 2
+        }else{
+            max_char_width
+        };
     }
 
     /// Wraps the cell's content to the provided width.
     ///
     /// New line characters are taken into account.
     pub fn wrapped_content(&self, width: usize) -> Vec<String> {
-        let pad_char = match self.pad_content {
-            true => ' ',
-            false => '\0',
-        };
+        let pad_char = if self.pad_content {' '} else {'\0'};
         let mut res: Vec<String> = Vec::new();
         let mut buf = String::new();
         buf.push(pad_char);
@@ -157,8 +157,8 @@ lazy_static! {
 }
 
 // The width of a string. Strips ansi characters
-pub fn string_width(string:&String) -> usize{
-    let stripped = STRIP_ANSI_RE.replace_all(string.as_str(), "");
+pub fn string_width(string:&str) -> usize{
+    let stripped = STRIP_ANSI_RE.replace_all(string, "");
     return str_width(stripped.borrow()).unwrap_or_default();
 }
 

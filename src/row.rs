@@ -24,7 +24,7 @@ impl<'data> Row<'data> {
     }
 
     /// Formats a row based on the provided table style
-    pub fn format(&self, column_widths: &Vec<usize>, style: &TableStyle) -> String {
+    pub fn format(&self, column_widths: &[usize], style: &TableStyle) -> String {
         let mut buf = String::new();
 
         // Since a cell can span multiple columns we need to track
@@ -63,7 +63,7 @@ impl<'data> Row<'data> {
         // We need to iterate over all of the column widths
         // We may not have as many cells as column widths, or the cells may not even span
         // as many columns as are in column widths. In that case weill will create empty cells
-        for col_idx in 0..column_widths.len() {
+        for col_idx in 0..column_widths.len(){
             // Check to see if we actually have a cell for the column index
             // Otherwise we will just need to print out empty space as filler
             if self.cells.len() > col_idx {
@@ -83,7 +83,7 @@ impl<'data> Row<'data> {
                     cell_span += column_widths[spanned_columns + c];
                 }
                 // Since cells can wrap we need to loop over all of the lines
-                for line_idx in 0..row_height {
+                for (line_idx, line) in lines.iter_mut().enumerate().take(row_height){
                     // Check to see if the wrapped cell has a line for the line index
                     if wrapped_cells[col_idx].len() > line_idx {
                         // We may need to pad the cell if it's contents are not as wide as some other cell in the column
@@ -100,7 +100,7 @@ impl<'data> Row<'data> {
                             }
                         }
                         // Finally we can push the string into the lines vec
-                        lines[line_idx].push_str(
+                        line.push_str(
                             format!(
                                 "{}{}",
                                 style.vertical,
@@ -109,7 +109,7 @@ impl<'data> Row<'data> {
                         );
                     } else {
                         // If the cell doesn't have any content for this line just fill it with empty space
-                        lines[line_idx].push_str(
+                        line.push_str(
                             format!(
                                 "{}{}",
                                 style.vertical,
@@ -126,8 +126,8 @@ impl<'data> Row<'data> {
                 spanned_columns += cell.col_span;
             } else {
                 // If we don't have a cell for the coulumn then we just create an empty one
-                for line in 0..row_height {
-                    lines[line].push_str(
+                for line in lines.iter_mut().take(row_height) {
+                    line.push_str(
                         format!(
                             "{}{}",
                             style.vertical,
@@ -158,7 +158,7 @@ impl<'data> Row<'data> {
     /// The previous seperator is used to determine junction characters
     pub fn gen_separator(
         &self,
-        column_widths: &Vec<usize>,
+        column_widths: &[usize],
         style: &TableStyle,
         row_position: RowPosition,
         previous_separator: Option<String>,
@@ -177,7 +177,7 @@ impl<'data> Row<'data> {
 
         let mut current_column = 0;
 
-        for i in 0..column_widths.len() {
+        for (i, column_width) in column_widths.iter().enumerate() {
             if i == next_intersection {
                 // Draw the intersection character for the start of the column
                 buf.push(style.intersect_for_position(row_position));
@@ -198,7 +198,7 @@ impl<'data> Row<'data> {
             }
             // Fill in all of the horizontal space
             buf.push_str(
-                str::repeat(style.horizontal.to_string().as_str(), column_widths[i]).as_str(),
+                str::repeat(style.horizontal.to_string().as_str(), *column_width).as_str(),
             );
         }
 
@@ -258,7 +258,7 @@ impl<'data> Row<'data> {
     }
 
     /// Pads a string accoding to the provided alignment
-    fn pad_string(&self, padding: usize, alignment: Alignment, text: &String) -> String {
+    fn pad_string(&self, padding: usize, alignment: Alignment, text: &str) -> String {
         match alignment {
             Alignment::Left => return format!("{}{}", text, str::repeat(" ", padding)),
             Alignment::Right => return format!("{}{}", str::repeat(" ", padding), text),

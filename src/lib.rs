@@ -367,12 +367,14 @@ impl<'data> Table<'data> {
         let mut print_buffer = String::new();
         let max_widths = self.calculate_max_column_widths();
         let mut previous_separator = None;
-        if self.rows.len() > 0 {
+        if !self.rows.is_empty() {
             for i in 0..self.rows.len() {
-                let mut row_pos = RowPosition::Mid;
-                if i == 0 {
-                    row_pos = RowPosition::First;
-                }
+                let mut row_pos = 
+                    if i == 0 {
+                        RowPosition::First
+                    }else{
+                        RowPosition::Mid
+                    };
                 let separator = self.rows[i].gen_separator(
                     &max_widths,
                     &self.style,
@@ -424,13 +426,18 @@ impl<'data> Table<'data> {
     }
 
     /// Helper method for adding a line to a string buffer
-    fn buffer_line(buffer: &mut String, line: &String) {
+    fn buffer_line(buffer: &mut String, line: &str) {
         buffer.push_str(format!("{}\n", line).as_str());
     }
 }
 
-impl<'data> ToString for Table<'data>{
+impl<'data> Default for Table<'data>{
+    fn default()->Self{
+        return Table::new();
+    }
+}
 
+impl<'data> ToString for Table<'data>{
     fn to_string(&self)->String{
         return self.render();
     }
@@ -739,7 +746,7 @@ mod test {
         ]));
 
         table.add_row(Row::new(vec![
-            TableCell::new("This is left aligned text"),
+            TableCell::new(&"This is left aligned text"),
             TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
         ]));
 
