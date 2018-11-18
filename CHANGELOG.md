@@ -1,3 +1,12 @@
+# 1.0.0
+
+Cleaned up code and added comments
+
+Renamed `cel::Cell` to `table_cell::TableCell`
+
+Fixed clippy lints
+
+
 # 0.1.6
 
 New table styles have been added 
