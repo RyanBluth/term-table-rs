@@ -6,6 +6,8 @@ use {RowPosition, TableStyle};
 /// A set of table cells
 pub struct Row<'data> {
     pub cells: Vec<TableCell<'data>>,
+    /// Whether the row should have a top boarder or not
+    pub has_separator: bool,
 }
 
 impl<'data> Row<'data> {
@@ -14,7 +16,7 @@ impl<'data> Row<'data> {
         T: Into<TableCell<'data>>,
         I: IntoIterator<Item=T>
     {
-        let mut row = Row { cells: vec![] };
+        let mut row = Row { cells: vec![], has_separator: true };
 
         for entry in cells.into_iter() {
             row.cells.push(entry.into());

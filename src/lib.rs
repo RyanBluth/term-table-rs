@@ -332,6 +332,13 @@ pub struct Table<'data> {
     pub max_column_width: usize,
     /// The maxium widths of specific columns. Override max_column
     pub max_column_widths: HashMap<usize, usize>,
+    /// Whether or not to vertically separate rows in the table
+    pub separate_rows: bool,
+    /// Whether the table should have a top boarder.
+    /// Setting `has_separator` to false on the first row will have the same effect as setting this to false
+    pub has_top_boarder: bool,
+    /// Whether the table should have a bottom boarder
+    pub has_bottom_boarder: bool,
 }
 
 impl<'data> Table<'data> {
@@ -341,6 +348,9 @@ impl<'data> Table<'data> {
             style: TableStyle::extended(),
             max_column_width: std::usize::MAX,
             max_column_widths: HashMap::new(),
+            separate_rows: true,
+            has_top_boarder: true,
+            has_bottom_boarder: true,
         };
     }
 
@@ -375,26 +385,31 @@ impl<'data> Table<'data> {
                     }else{
                         RowPosition::Mid
                     };
-                let separator = self.rows[i].gen_separator(
-                    &max_widths,
-                    &self.style,
-                    row_pos,
-                    previous_separator.clone(),
-                );
-                Table::buffer_line(&mut print_buffer, &separator);
+                if self.rows[i].has_separator && ((i == 0 && self.has_top_boarder) || i != 0 && self.separate_rows){
+                    let separator = self.rows[i].gen_separator(
+                        &max_widths,
+                        &self.style,
+                        row_pos,
+                        previous_separator.clone(),
+                    );
+                    Table::buffer_line(&mut print_buffer, &separator);
+                    previous_separator = Some(separator.clone());
+                }
+
                 Table::buffer_line(
                     &mut print_buffer,
                     &self.rows[i].format(&max_widths, &self.style),
                 );
-                previous_separator = Some(separator.clone());
             }
-            let separator = self.rows.last().unwrap().gen_separator(
-                &max_widths,
-                &self.style,
-                RowPosition::Last,
-                None,
-            );
-            Table::buffer_line(&mut print_buffer, &separator);
+            if self.has_bottom_boarder{
+                let separator = self.rows.last().unwrap().gen_separator(
+                    &max_widths,
+                    &self.style,
+                    RowPosition::Last,
+                    None,
+                );
+                Table::buffer_line(&mut print_buffer, &separator);
+            }
         }
         return print_buffer;
     }
