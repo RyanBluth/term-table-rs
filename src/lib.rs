@@ -394,6 +394,8 @@ impl<'data> Table<'data> {
                     );
                     Table::buffer_line(&mut print_buffer, &separator);
                     previous_separator = Some(separator.clone());
+                }else{
+                    previous_separator = None;
                 }
 
                 Table::buffer_line(
