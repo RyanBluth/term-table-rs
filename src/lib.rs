@@ -41,11 +41,11 @@
 #[macro_use]
 extern crate lazy_static;
 
-extern crate wcwidth;
 extern crate regex;
+extern crate wcwidth;
 
-pub mod table_cell;
 pub mod row;
+pub mod table_cell;
 
 use row::Row;
 
@@ -158,7 +158,6 @@ impl TableStyle {
         };
     }
 
-
     /// <pre>
     /// ┌─────────────────────────────────────────────────────────────────────────────────┐
     /// │                            This is some centered text                           │
@@ -214,7 +213,6 @@ impl TableStyle {
             horizontal: '─',
         };
     }
-
 
     /// <pre>
     /// ╔─────────────────────────────────────────────────────────────────────────────────╗
@@ -379,23 +377,25 @@ impl<'data> Table<'data> {
         let mut previous_separator = None;
         if !self.rows.is_empty() {
             for i in 0..self.rows.len() {
-                let mut row_pos = 
-                    if i == 0 {
-                        RowPosition::First
-                    }else{
-                        RowPosition::Mid
-                    };
-                if self.rows[i].has_separator && ((i == 0 && self.has_top_boarder) || i != 0 && self.separate_rows){
-                    let separator = self.rows[i].gen_separator(
-                        &max_widths,
-                        &self.style,
-                        row_pos,
-                        previous_separator.clone(),
-                    );
+                let mut row_pos = if i == 0 {
+                    RowPosition::First
+                } else {
+                    RowPosition::Mid
+                };
+
+                let separator = self.rows[i].gen_separator(
+                    &max_widths,
+                    &self.style,
+                    row_pos,
+                    previous_separator.clone(),
+                );
+
+                previous_separator = Some(separator.clone());
+
+                if self.rows[i].has_separator
+                    && ((i == 0 && self.has_top_boarder) || i != 0 && self.separate_rows)
+                {
                     Table::buffer_line(&mut print_buffer, &separator);
-                    previous_separator = Some(separator.clone());
-                }else{
-                    previous_separator = None;
                 }
 
                 Table::buffer_line(
@@ -403,7 +403,7 @@ impl<'data> Table<'data> {
                     &self.rows[i].format(&max_widths, &self.style),
                 );
             }
-            if self.has_bottom_boarder{
+            if self.has_bottom_boarder {
                 let separator = self.rows.last().unwrap().gen_separator(
                     &max_widths,
                     &self.style,
@@ -432,7 +432,8 @@ impl<'data> Table<'data> {
             let column_widths = row.split_column_widths();
             for i in 0..column_widths.len() {
                 min_widths[i] = max(min_widths[i], column_widths[i].1);
-                let mut max_width = *self.max_column_widths
+                let mut max_width = *self
+                    .max_column_widths
                     .get(&i)
                     .unwrap_or(&self.max_column_width);
                 max_width = max(min_widths[i] as usize, max_width);
@@ -448,14 +449,14 @@ impl<'data> Table<'data> {
     }
 }
 
-impl<'data> Default for Table<'data>{
-    fn default()->Self{
+impl<'data> Default for Table<'data> {
+    fn default() -> Self {
         return Table::new();
     }
 }
 
-impl<'data> ToString for Table<'data>{
-    fn to_string(&self)->String{
+impl<'data> ToString for Table<'data> {
+    fn to_string(&self) -> String {
         return self.render();
     }
 }
@@ -463,38 +464,21 @@ impl<'data> ToString for Table<'data>{
 #[cfg(test)]
 mod test {
 
+    use row::Row;
+    use table_cell::{Alignment, TableCell};
     use Table;
     use TableStyle;
-    use table_cell::{Alignment, TableCell};
-    use row::Row;
 
     #[test]
     fn simple_table_style() {
         let mut table = Table::new();
-        table.max_column_width = 40;
 
         table.style = TableStyle::simple();
 
-        table.add_row(Row::new(vec![
-            TableCell::new_with_alignment("This is some centered text", 2, Alignment::Center),
-        ]));
+        add_data_to_test_table(&mut table);
 
-        table.add_row(Row::new(vec![
-            TableCell::new("This is left aligned text"),
-            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
-        ]));
-
-        table.add_row(Row::new(vec![
-            TableCell::new("This is left aligned text"),
-            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
-        ]));
-
-        table.add_row(Row::new(vec![
-            TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
-        ]));
-
-        let expected = 
-"+---------------------------------------------------------------------------------+
+        let expected =
+            "+---------------------------------------------------------------------------------+
 |                            This is some centered text                           |
 +----------------------------------------+----------------------------------------+
 | This is left aligned text              |             This is right aligned text |
@@ -504,13 +488,13 @@ mod test {
 | This is some really really really really really really really really really tha |
 | t is going to wrap to the next line                                             |
 +---------------------------------------------------------------------------------+
-";        
+";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
     }
 
     #[test]
-    fn extended_table_style() {
+    fn extended_table_style_wrapped() {
         let mut table = Table::new();
         table.max_column_width = 40;
 
@@ -518,9 +502,11 @@ mod test {
 
         table.style = TableStyle::extended();
 
-        table.add_row(Row::new(vec![
-            TableCell::new_with_alignment("This is some centered text", 2, Alignment::Center),
-        ]));
+        table.add_row(Row::new(vec![TableCell::new_with_alignment(
+            "This is some centered text",
+            2,
+            Alignment::Center,
+        )]));
 
         table.add_row(Row::new(vec![
             TableCell::new("This is left aligned text"),
@@ -535,9 +521,8 @@ mod test {
         table.add_row(Row::new(vec![
             TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line\n1\n2", 2),
         ]));
-        
-        let expected =
-"╔═══════╗
+
+        let expected = "╔═══════╗
 ║ This  ║
 ║ is so ║
 ║ me ce ║
@@ -633,29 +618,12 @@ mod test {
     #[test]
     fn blank_table_style() {
         let mut table = Table::new();
-        table.max_column_width = 40;
 
         table.style = TableStyle::blank();
+        add_data_to_test_table(&mut table);
 
-        table.add_row(Row::new(vec![
-            TableCell::new_with_alignment("This is some centered text", 2, Alignment::Center),
-        ]));
-
-        table.add_row(Row::new(vec![
-            TableCell::new("This is left aligned text"),
-            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
-        ]));
-
-        table.add_row(Row::new(vec![
-            TableCell::new("This is left aligned text"),
-            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
-        ]));
-
-        table.add_row(Row::new(vec![
-            TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
-        ]));
-    let expected = 
-"                                                                                   
+        let expected =
+            "                                                                                   
                             This is some centered text                            
                                                                                    
   This is left aligned text                            This is right aligned text  
@@ -665,7 +633,7 @@ mod test {
   This is some really really really really really really really really really tha  
   t is going to wrap to the next line                                             
                                                                                    
-";  
+";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
     }
@@ -673,29 +641,11 @@ mod test {
     #[test]
     fn elegant_table_style() {
         let mut table = Table::new();
-        table.max_column_width = 40;
-
         table.style = TableStyle::elegant();
 
-        table.add_row(Row::new(vec![
-            TableCell::new_with_alignment("This is some centered text", 2, Alignment::Center),
-        ]));
+        add_data_to_test_table(&mut table);
 
-        table.add_row(Row::new(vec![
-            TableCell::new("This is left aligned text"),
-            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
-        ]));
-
-        table.add_row(Row::new(vec![
-            TableCell::new("This is left aligned text"),
-            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
-        ]));
-
-        table.add_row(Row::new(vec![
-            TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
-        ]));
-
-        let expected = 
+        let expected =
 "╔─────────────────────────────────────────────────────────────────────────────────╗
 │                            This is some centered text                           │
 ╠────────────────────────────────────────╦────────────────────────────────────────╣
@@ -714,27 +664,10 @@ mod test {
     #[test]
     fn thin_table_style() {
         let mut table = Table::new();
-        table.max_column_width = 40;
-
         table.style = TableStyle::thin();
 
-        table.add_row(Row::new(vec![
-            TableCell::new_with_alignment("This is some centered text", 2, Alignment::Center),
-        ]));
+        add_data_to_test_table(&mut table);
 
-        table.add_row(Row::new(vec![
-            TableCell::new("This is left aligned text"),
-            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
-        ]));
-
-        table.add_row(Row::new(vec![
-            TableCell::new("This is left aligned text"),
-            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
-        ]));
-
-        table.add_row(Row::new(vec![
-            TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
-        ]));
         let expected =
 "┌─────────────────────────────────────────────────────────────────────────────────┐
 │                            This is some centered text                           │
@@ -754,28 +687,11 @@ mod test {
     #[test]
     fn rounded_table_style() {
         let mut table = Table::new();
-        table.max_column_width = 40;
 
         table.style = TableStyle::rounded();
 
-        table.add_row(Row::new(vec![
-            TableCell::new_with_alignment("This is some centered text", 2, Alignment::Center),
-        ]));
+        add_data_to_test_table(&mut table);
 
-        table.add_row(Row::new(vec![
-            TableCell::new(&"This is left aligned text"),
-            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
-        ]));
-
-        table.add_row(Row::new(vec![
-            TableCell::new("This is left aligned text"),
-            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
-        ]));
-
-        table.add_row(Row::new(vec![
-            TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
-        ]));
-        
         let expected = 
 "╭─────────────────────────────────────────────────────────────────────────────────╮
 │                            This is some centered text                           │
@@ -791,7 +707,6 @@ mod test {
         println!("{}", table.render());
         assert_eq!(expected, table.render());
     }
-
 
     #[test]
     fn complex_table() {
@@ -827,9 +742,11 @@ mod test {
 
         let s = table.render().clone();
 
-        table.add_row(Row::new(vec![
-            TableCell::new_with_alignment(s, 3, Alignment::Left),
-        ]));
+        table.add_row(Row::new(vec![TableCell::new_with_alignment(
+            s,
+            3,
+            Alignment::Left,
+        )]));
 
         let expected = 
 "╔═══════════════════════════════════════════════════════════════╦═══════════════════════════════╦═════════════════╦════════════════╦══╗
@@ -878,4 +795,119 @@ mod test {
         assert_eq!(expected, table.render());
         println!("{}", table.render());
     }
+
+    #[test]
+    fn no_top_boarder() {
+        let mut table = Table::new();
+        table.style = TableStyle::simple();
+        table.has_top_boarder = false;
+
+        add_data_to_test_table(&mut table);
+
+        let expected =
+            "|                            This is some centered text                           |
++----------------------------------------+----------------------------------------+
+| This is left aligned text              |             This is right aligned text |
++----------------------------------------+----------------------------------------+
+| This is left aligned text              |             This is right aligned text |
++----------------------------------------+----------------------------------------+
+| This is some really really really really really really really really really tha |
+| t is going to wrap to the next line                                             |
++---------------------------------------------------------------------------------+
+";
+        println!("{}", table.render());
+        assert_eq!(expected, table.render());
+    }
+
+    #[test]
+    fn no_bottom_boarder() {
+        let mut table = Table::new();
+        table.style = TableStyle::simple();
+        table.has_bottom_boarder = false;
+
+        add_data_to_test_table(&mut table);
+
+        let expected =
+            "+---------------------------------------------------------------------------------+
+|                            This is some centered text                           |
++----------------------------------------+----------------------------------------+
+| This is left aligned text              |             This is right aligned text |
++----------------------------------------+----------------------------------------+
+| This is left aligned text              |             This is right aligned text |
++----------------------------------------+----------------------------------------+
+| This is some really really really really really really really really really tha |
+| t is going to wrap to the next line                                             |
+";
+        println!("{}", table.render());
+        assert_eq!(expected, table.render());
+    }
+
+    #[test]
+    fn no_separators() {
+        let mut table = Table::new();
+        table.style = TableStyle::simple();
+        table.separate_rows = false;
+
+        add_data_to_test_table(&mut table);
+
+        let expected =
+            "+---------------------------------------------------------------------------------+
+|                            This is some centered text                           |
+| This is left aligned text              |             This is right aligned text |
+| This is left aligned text              |             This is right aligned text |
+| This is some really really really really really really really really really tha |
+| t is going to wrap to the next line                                             |
++---------------------------------------------------------------------------------+
+";
+        println!("{}", table.render());
+        assert_eq!(expected, table.render());
+    }
+
+    #[test]
+    fn some_rows_no_separators() {
+        let mut table = Table::new();
+        table.style = TableStyle::simple();
+
+        add_data_to_test_table(&mut table);
+
+        table.rows[2].has_separator = false;
+
+        let expected =
+            "+---------------------------------------------------------------------------------+
+|                            This is some centered text                           |
++----------------------------------------+----------------------------------------+
+| This is left aligned text              |             This is right aligned text |
+| This is left aligned text              |             This is right aligned text |
++----------------------------------------+----------------------------------------+
+| This is some really really really really really really really really really tha |
+| t is going to wrap to the next line                                             |
++---------------------------------------------------------------------------------+
+";
+        println!("{}", table.render());
+        assert_eq!(expected, table.render());
+    }
+
+    fn add_data_to_test_table(table: &mut Table) {
+        table.max_column_width = 40;
+        table.add_row(Row::new(vec![TableCell::new_with_alignment(
+            "This is some centered text",
+            2,
+            Alignment::Center,
+        )]));
+
+        table.add_row(Row::new(vec![
+            TableCell::new(&"This is left aligned text"),
+            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+        ]));
+
+        table.add_row(Row::new(vec![
+            TableCell::new("This is left aligned text"),
+            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
+        ]));
+
+        table.add_row(Row::new(vec![
+            TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+        ]));
+    }
+
 }

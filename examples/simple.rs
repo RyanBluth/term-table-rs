@@ -1,26 +1,29 @@
 extern crate term_table;
-use term_table::{Table,TableStyle};
-use term_table::{row::Row,
-    table_cell::{Alignment,TableCell},
+use term_table::{
+    row::Row,
+    table_cell::{Alignment, TableCell},
 };
-fn main(){
+use term_table::{Table, TableStyle};
+fn main() {
     let mut table = Table::new();
     table.max_column_width = 40;
 
     table.style = TableStyle::elegant();
 
+    table.add_row(Row::new(vec![TableCell::new_with_alignment(
+        "This is some centered text",
+        2,
+        Alignment::Center,
+    )]));
+
     table.add_row(Row::new(vec![
-        TableCell::new_with_alignment("This is some centered text", 2, Alignment::Center)
+        TableCell::new("This is left aligned text"),
+        TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
     ]));
 
     table.add_row(Row::new(vec![
         TableCell::new("This is left aligned text"),
-        TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
-    ]));
-
-    table.add_row(Row::new(vec![
-        TableCell::new("This is left aligned text"),
-        TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+        TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
     ]));
 
     table.add_row(Row::new(vec![

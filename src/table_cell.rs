@@ -1,8 +1,8 @@
+use regex::Regex;
+use std::borrow::Borrow;
 use std::borrow::Cow;
 use std::cmp;
 use wcwidth::{char_width, str_width};
-use regex::Regex;
-use std::borrow::Borrow;
 
 /// Represents the horizontal alignment of content within a cell.
 #[derive(Clone, Copy)]
@@ -27,7 +27,7 @@ pub struct TableCell<'data> {
 impl<'data> TableCell<'data> {
     pub fn new<T>(data: T) -> TableCell<'data>
     where
-        T: ToString
+        T: ToString,
     {
         return TableCell {
             data: data.to_string().into(),
@@ -39,7 +39,7 @@ impl<'data> TableCell<'data> {
 
     pub fn new_with_col_span<T>(data: T, col_span: usize) -> TableCell<'data>
     where
-        T: ToString
+        T: ToString,
     {
         return TableCell {
             data: data.to_string().into(),
@@ -88,12 +88,11 @@ impl<'data> TableCell<'data> {
             let str_width = string_width(&s);
             max = cmp::max(max, str_width);
         }
-        return max + 
-            if self.pad_content{
-                2 * char_width(' ').unwrap_or(1) as usize
-            }else{
-                0
-            };
+        return max + if self.pad_content {
+            2 * char_width(' ').unwrap_or(1) as usize
+        } else {
+            0
+        };
     }
 
     /// The width of the cell's content divided by its `col_span` value.
@@ -104,13 +103,13 @@ impl<'data> TableCell<'data> {
 
     /// The minium width required to display the cell properly
     pub fn min_width(&self) -> usize {
-        let mut max_char_width:usize = 0;
-        for c in self.data.chars(){
+        let mut max_char_width: usize = 0;
+        for c in self.data.chars() {
             max_char_width = cmp::max(max_char_width, char_width(c).unwrap_or(1) as usize);
         }
-        return if self.pad_content{
+        return if self.pad_content {
             max_char_width + char_width(' ').unwrap_or(1) as usize * 2
-        }else{
+        } else {
             max_char_width
         };
     }
@@ -119,13 +118,12 @@ impl<'data> TableCell<'data> {
     ///
     /// New line characters are taken into account.
     pub fn wrapped_content(&self, width: usize) -> Vec<String> {
-        let pad_char = if self.pad_content {' '} else {'\0'};
+        let pad_char = if self.pad_content { ' ' } else { '\0' };
         let mut res: Vec<String> = Vec::new();
         let mut buf = String::new();
         buf.push(pad_char);
         for c in self.data.chars().enumerate() {
-            if string_width(&buf) as usize
-                >= width - char_width(pad_char).unwrap_or(1) as usize
+            if string_width(&buf) as usize >= width - char_width(pad_char).unwrap_or(1) as usize
                 || c.1 == '\n'
             {
                 buf.push(pad_char);
@@ -144,21 +142,24 @@ impl<'data> TableCell<'data> {
     }
 }
 
-impl<'data, T> From<T> for TableCell<'data> where T: ToString{
-    fn from(other:T)-> Self{
+impl<'data, T> From<T> for TableCell<'data>
+where
+    T: ToString,
+{
+    fn from(other: T) -> Self {
         return TableCell::new(other);
     }
-}  
+}
 
 // Taken from https://github.com/mitsuhiko/console
 lazy_static! {
-    static ref STRIP_ANSI_RE: Regex = Regex::new(
-        r"[\x1b\x9b][\[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-PRZcf-nqry=><]").unwrap();
+    static ref STRIP_ANSI_RE: Regex =
+        Regex::new(r"[\x1b\x9b][\[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-PRZcf-nqry=><]")
+            .unwrap();
 }
 
 // The width of a string. Strips ansi characters
-pub fn string_width(string:&str) -> usize{
+pub fn string_width(string: &str) -> usize {
     let stripped = STRIP_ANSI_RE.replace_all(string, "");
     return str_width(stripped.borrow()).unwrap_or_default();
 }
-

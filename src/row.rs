@@ -1,5 +1,5 @@
-use table_cell::{string_width, Alignment, TableCell};
 use std::cmp::max;
+use table_cell::{string_width, Alignment, TableCell};
 use wcwidth::char_width;
 use {RowPosition, TableStyle};
 
@@ -11,12 +11,15 @@ pub struct Row<'data> {
 }
 
 impl<'data> Row<'data> {
-    pub fn new<I, T>(cells:I) -> Row<'data>
+    pub fn new<I, T>(cells: I) -> Row<'data>
     where
         T: Into<TableCell<'data>>,
-        I: IntoIterator<Item=T>
+        I: IntoIterator<Item = T>,
     {
-        let mut row = Row { cells: vec![], has_separator: true };
+        let mut row = Row {
+            cells: vec![],
+            has_separator: true,
+        };
 
         for entry in cells.into_iter() {
             row.cells.push(entry.into());
@@ -65,15 +68,15 @@ impl<'data> Row<'data> {
         // We need to iterate over all of the column widths
         // We may not have as many cells as column widths, or the cells may not even span
         // as many columns as are in column widths. In that case weill will create empty cells
-        for col_idx in 0..column_widths.len(){
+        for col_idx in 0..column_widths.len() {
             // Check to see if we actually have a cell for the column index
             // Otherwise we will just need to print out empty space as filler
             if self.cells.len() > col_idx {
                 // Number of characters spanned by column
                 let mut cell_span = 0;
-            
+
                 // Get the cell using the column index
-                // 
+                //
                 // This is a little bit confusing because cells and columns aren't always one to one
                 // We may have fewer cells than columns or some cells may span multiple columns
                 // If there are fewer cells than columns we just end drawing empty cells in the else block
@@ -85,12 +88,12 @@ impl<'data> Row<'data> {
                     cell_span += column_widths[spanned_columns + c];
                 }
                 // Since cells can wrap we need to loop over all of the lines
-                for (line_idx, line) in lines.iter_mut().enumerate().take(row_height){
+                for (line_idx, line) in lines.iter_mut().enumerate().take(row_height) {
                     // Check to see if the wrapped cell has a line for the line index
                     if wrapped_cells[col_idx].len() > line_idx {
                         // We may need to pad the cell if it's contents are not as wide as some other cell in the column
                         let mut padding = 0;
-                        // We need to calculate the string_width because some characters take up extra space and we need to 
+                        // We need to calculate the string_width because some characters take up extra space and we need to
                         // ignore ANSI characters
                         let str_width = string_width(&wrapped_cells[col_idx][line_idx]);
                         if cell_span >= str_width {
@@ -106,7 +109,11 @@ impl<'data> Row<'data> {
                             format!(
                                 "{}{}",
                                 style.vertical,
-                                self.pad_string(padding, cell.alignment, &wrapped_cells[col_idx][line_idx])
+                                self.pad_string(
+                                    padding,
+                                    cell.alignment,
+                                    &wrapped_cells[col_idx][line_idx]
+                                )
                             ).as_str(),
                         );
                     } else {
@@ -117,7 +124,8 @@ impl<'data> Row<'data> {
                                 style.vertical,
                                 str::repeat(
                                     " ",
-                                    column_widths[spanned_columns] * cell.col_span + cell.col_span - 1
+                                    column_widths[spanned_columns] * cell.col_span + cell.col_span
+                                        - 1
                                 )
                             ).as_str(),
                         );
