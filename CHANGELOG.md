@@ -1,3 +1,6 @@
+# 1.1.0
+Added options for disabling row seperators
+
 # 1.0.0
 
 Cleaned up code and added comments
