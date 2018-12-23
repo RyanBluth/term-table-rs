@@ -79,3 +79,24 @@ Those styles looks like this
 ## Column Widths
 
 It is possible to control the maximum width of table columns. The `max_column_width` property of `Table` can be set to restrict the width of all TableCells. The `set_max_column_width` function of `Table` can be used to set the max width of a specific column. The `set_max_column_widths` function provides the ability to set the width of multiple columns by passing in a `Vec` of tuples containing an index and width.
+
+## Disabling Row Separators
+
+There are a few different options for disabling row seperation. 
+
+`Table` has three flags for controlling row seperation:
+1.  `separate_rows` dictates whether rows are seperated within the table 
+    
+    ![separate_rows](https://i.imgur.com/a8nAg5o.png)
+
+2.  `has_top_boarder` dictates whether or not the table has a top border
+
+    ![has_top_boarder](https://i.imgur.com/336tbDm.png)
+
+3.  `has_bottom_boarder` dicates whether or not the table has a bottom border
+
+    ![has_bottom_boarder](https://i.imgur.com/C0ETZFi.png)
+
+Separators can also be contolled per row by setting the `has_separator` flag on `Row`
+
+![has_separator](https://i.imgur.com/VAZJnC7.png)
