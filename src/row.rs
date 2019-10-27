@@ -1,6 +1,6 @@
 use std::cmp::max;
 use table_cell::{string_width, Alignment, TableCell};
-use wcwidth::char_width;
+use unicode_width::UnicodeWidthChar;
 use {RowPosition, TableStyle};
 
 /// A set of table cells
@@ -100,7 +100,7 @@ impl<'data> Row<'data> {
                             padding += cell_span - str_width;
                             // If the cols_span is greater than one we need to add extra padding for the missing vertical characters
                             if cell.col_span > 1 {
-                                padding += char_width(style.vertical).unwrap_or_default() as usize
+                                padding += style.vertical.width().unwrap_or_default()
                                     * (cell.col_span - 1); // Subtract one since we add a vertical character to the beginning
                             }
                         }
