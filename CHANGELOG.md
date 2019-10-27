@@ -1,3 +1,6 @@
+# 1.2.0
+Switched to unicode-width from wcwidth since it has been yanked
+
 # 1.1.0
 Added options for disabling row seperators
 
