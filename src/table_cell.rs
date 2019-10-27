@@ -1,8 +1,9 @@
 use regex::Regex;
-use std::borrow::Borrow;
 use std::borrow::Cow;
 use std::cmp;
-use wcwidth::{char_width, str_width};
+
+use unicode_width::UnicodeWidthChar;
+use unicode_width::UnicodeWidthStr;
 
 /// Represents the horizontal alignment of content within a cell.
 #[derive(Clone, Copy)]
@@ -89,7 +90,7 @@ impl<'data> TableCell<'data> {
             max = cmp::max(max, str_width);
         }
         return max + if self.pad_content {
-            2 * char_width(' ').unwrap_or(1) as usize
+            2 * ' '.width().unwrap_or(1) as usize
         } else {
             0
         };
@@ -105,10 +106,10 @@ impl<'data> TableCell<'data> {
     pub fn min_width(&self) -> usize {
         let mut max_char_width: usize = 0;
         for c in self.data.chars() {
-            max_char_width = cmp::max(max_char_width, char_width(c).unwrap_or(1) as usize);
+            max_char_width = cmp::max(max_char_width, c.width().unwrap_or(1) as usize);
         }
         return if self.pad_content {
-            max_char_width + char_width(' ').unwrap_or(1) as usize * 2
+            max_char_width + ' '.width().unwrap_or(1) as usize * 2
         } else {
             max_char_width
         };
@@ -123,7 +124,7 @@ impl<'data> TableCell<'data> {
         let mut buf = String::new();
         buf.push(pad_char);
         for c in self.data.chars().enumerate() {
-            if string_width(&buf) as usize >= width - char_width(pad_char).unwrap_or(1) as usize
+            if string_width(&buf) as usize >= width - pad_char.width().unwrap_or(1) as usize
                 || c.1 == '\n'
             {
                 buf.push(pad_char);
@@ -161,5 +162,5 @@ lazy_static! {
 // The width of a string. Strips ansi characters
 pub fn string_width(string: &str) -> usize {
     let stripped = STRIP_ANSI_RE.replace_all(string, "");
-    return str_width(stripped.borrow()).unwrap_or_default();
+    return stripped.width();
 }

@@ -42,7 +42,7 @@
 extern crate lazy_static;
 
 extern crate regex;
-extern crate wcwidth;
+extern crate unicode_width;
 
 pub mod row;
 pub mod table_cell;
@@ -692,7 +692,7 @@ mod test {
 
         add_data_to_test_table(&mut table);
 
-        let expected = 
+        let expected =
 "╭─────────────────────────────────────────────────────────────────────────────────╮
 │                            This is some centered text                           │
 ├────────────────────────────────────────┬────────────────────────────────────────┤
@@ -748,7 +748,7 @@ mod test {
             Alignment::Left,
         )]));
 
-        let expected = 
+        let expected =
 "╔═══════════════════════════════════════════════════════════════╦═══════════════════════════════╦═════════════════╦════════════════╦══╗
 ║ Col*1*Span*2                                                  ║ Col 2 Span 1                  ║ Col 3 Span 2    ║ Col 4 Span 1   ║  ║
 ╠═══════════════════════════════╦═══════════════════════════════╬═══════════════════════════════╬═════════════════╬════════════════╬══╣
