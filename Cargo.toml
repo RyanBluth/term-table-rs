@@ -13,4 +13,3 @@ keywords = ["table", "cli", "terminal"]
 lazy_static = "1"
 regex = "1"
 unicode-width = "0.1"
-ansi_term = "0.12"
