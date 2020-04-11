@@ -6,9 +6,6 @@
  </strong>
 </div>
 
-![example](https://i.imgur.com/XwIzWkU.png)
-
-
 ## Example
 
 ```rust
