@@ -8,6 +8,7 @@ repository = "https://github.com/RyanBluth/term-table-rs"
 readme = "README.md"
 categories = ["command-line-interface"]
 keywords = ["table", "cli", "terminal"]
+edition = "2018"
 
 [dependencies]
 lazy_static = "1"

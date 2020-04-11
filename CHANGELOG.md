@@ -1,3 +1,8 @@
+# 1.2.1 
+Derived Clone and Debug for all types
+Added TableBuilder to help with constructing non-mutable tables
+Corrected documentation typos
+
 # 1.2.0
 Switched to unicode-width from wcwidth since it has been yanked
 

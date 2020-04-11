@@ -1,9 +1,10 @@
+use crate::table_cell::{string_width, Alignment, TableCell};
+use crate::{RowPosition, TableStyle};
 use std::cmp::max;
-use table_cell::{string_width, Alignment, TableCell};
 use unicode_width::UnicodeWidthChar;
-use {RowPosition, TableStyle};
 
 /// A set of table cells
+#[derive(Debug, Clone)]
 pub struct Row<'data> {
     pub cells: Vec<TableCell<'data>>,
     /// Whether the row should have a top boarder or not
@@ -25,7 +26,7 @@ impl<'data> Row<'data> {
             row.cells.push(entry.into());
         }
 
-        return row;
+        row
     }
 
     /// Formats a row based on the provided table style
@@ -33,7 +34,7 @@ impl<'data> Row<'data> {
         let mut buf = String::new();
 
         // Since a cell can span multiple columns we need to track
-        // how many columns we have actually spand. We cannot just depend
+        // how many columns we have actually spanned. We cannot just depend
         // on the index of the current cell when iterating
         let mut spanned_columns = 0;
 
@@ -114,7 +115,8 @@ impl<'data> Row<'data> {
                                     cell.alignment,
                                     &wrapped_cells[col_idx][line_idx]
                                 )
-                            ).as_str(),
+                            )
+                            .as_str(),
                         );
                     } else {
                         // If the cell doesn't have any content for this line just fill it with empty space
@@ -127,7 +129,8 @@ impl<'data> Row<'data> {
                                     column_widths[spanned_columns] * cell.col_span + cell.col_span
                                         - 1
                                 )
-                            ).as_str(),
+                            )
+                            .as_str(),
                         );
                     }
                 }
@@ -142,7 +145,8 @@ impl<'data> Row<'data> {
                             "{}{}",
                             style.vertical,
                             str::repeat(" ", column_widths[spanned_columns])
-                        ).as_str(),
+                        )
+                        .as_str(),
                     );
                 }
                 // Add one to the spanned column since the empty space is basically a cell
@@ -160,7 +164,8 @@ impl<'data> Row<'data> {
             buf.push('\n');
         }
         buf.pop();
-        return buf;
+
+        buf
     }
 
     /// Generates the top separator for a row.
@@ -218,7 +223,7 @@ impl<'data> Row<'data> {
 
         // Merge the previous seperator string with the current buffer
         // This will handle cases where a cell above/below has a different col_span value
-        return match previous_separator {
+        match previous_separator {
             Some(prev) => {
                 for pair in buf.chars().zip(prev.chars()) {
                     if pair.0 == style.outer_left_vertical || pair.0 == style.outer_right_vertical {
@@ -237,7 +242,7 @@ impl<'data> Row<'data> {
                 out
             }
             None => buf,
-        };
+        }
     }
 
     /// Returns a vector of split cell widths.
@@ -257,14 +262,15 @@ impl<'data> Row<'data> {
                 res.push((val, min));
             }
         }
-        return res;
+
+        res
     }
 
     /// Number of columns in the row.
     ///
     /// This is the sum of all cell's col_span values
     pub fn num_columns(&self) -> usize {
-        return self.cells.iter().map(|x| x.col_span).sum();
+        self.cells.iter().map(|x| x.col_span).sum()
     }
 
     /// Pads a string accoding to the provided alignment

@@ -2,23 +2,26 @@
 //!# Example
 //! Here is an example of how to create a simple table
 //!```
+//!use term_table::table_cell::TableCell;
+//!use term_table::row::Row;
+//!  
 //!let mut table = term_table::Table::new();
 //!table.max_column_width = 40;
 //!
 //!table.style = term_table::TableStyle::extended();
-//!table.add_row(term_table::row::Row::new(vec![
-//!    term_table::table_cell::TableCell::new_with_alignment("This is some centered text", 2, term_table::table_cell::Alignment::Center)
+//!table.add_row(Row::new(vec![
+//!    TableCell::new_with_alignment("This is some centered text", 2, term_table::table_cell::Alignment::Center)
 //!]));
-//!table.add_row(term_table::row::Row::new(vec![
-//!    term_table::table_cell::TableCell::new("This is left aligned text"),
-//!    term_table::table_cell::TableCell::new_with_alignment("This is right aligned text", 1, term_table::table_cell::Alignment::Right)
+//!table.add_row(Row::new(vec![
+//!    TableCell::new("This is left aligned text"),
+//!    TableCell::new_with_alignment("This is right aligned text", 1, term_table::table_cell::Alignment::Right)
 //!]));
-//! table.add_row(term_table::row::Row::new(vec![
-//!    term_table::table_cell::TableCell::new("This is left aligned text"),
-//!    term_table::table_cell::TableCell::new_with_alignment("This is right aligned text", 1, term_table::table_cell::Alignment::Right)
+//! table.add_row(Row::new(vec![
+//!    TableCell::new("This is left aligned text"),
+//!    TableCell::new_with_alignment("This is right aligned text", 1, term_table::table_cell::Alignment::Right)
 //!]));
-//!table.add_row(term_table::row::Row::new(vec![
-//!    term_table::table_cell::TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+//!table.add_row(Row::new(vec![
+//!    TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
 //!]));
 //!println!("{}", table.render());
 //!```
@@ -41,18 +44,16 @@
 #[macro_use]
 extern crate lazy_static;
 
-extern crate regex;
-extern crate unicode_width;
-
 pub mod row;
 pub mod table_cell;
 
-use row::Row;
+use crate::row::Row;
+use crate::table_cell::{Alignment, TableCell};
 
 use std::cmp::{max, min};
 use std::collections::HashMap;
 
-/// Represents the vertical postion of a row
+/// Represents the vertical position of a row
 #[derive(Eq, PartialEq, Copy, Clone)]
 pub enum RowPosition {
     First,
@@ -79,6 +80,7 @@ pub enum RowPosition {
 ///            horizontal: '═',
 ///        };
 ///```
+#[derive(Debug, Clone, Copy)]
 pub struct TableStyle {
     pub top_left_corner: char,
     pub top_right_corner: char,
@@ -111,7 +113,7 @@ impl TableStyle {
     ///   +---------------------------------------------------------------------------------+
     ///</pre>
     pub fn simple() -> TableStyle {
-        return TableStyle {
+        TableStyle {
             top_left_corner: '+',
             top_right_corner: '+',
             bottom_left_corner: '+',
@@ -123,7 +125,7 @@ impl TableStyle {
             intersection: '+',
             vertical: '|',
             horizontal: '-',
-        };
+        }
     }
 
     /// Table style using extended character set
@@ -143,7 +145,7 @@ impl TableStyle {
     /// ╚═════════════════════════════════════════════════════════════════════════════════╝
     ///</pre>
     pub fn extended() -> TableStyle {
-        return TableStyle {
+        TableStyle {
             top_left_corner: '╔',
             top_right_corner: '╗',
             bottom_left_corner: '╚',
@@ -155,7 +157,7 @@ impl TableStyle {
             intersection: '╬',
             vertical: '║',
             horizontal: '═',
-        };
+        }
     }
 
     /// <pre>
@@ -171,7 +173,7 @@ impl TableStyle {
     /// └─────────────────────────────────────────────────────────────────────────────────┘
     /// </pre>
     pub fn thin() -> TableStyle {
-        return TableStyle {
+        TableStyle {
             top_left_corner: '┌',
             top_right_corner: '┐',
             bottom_left_corner: '└',
@@ -183,7 +185,7 @@ impl TableStyle {
             intersection: '┼',
             vertical: '│',
             horizontal: '─',
-        };
+        }
     }
 
     ///  <pre>
@@ -199,7 +201,7 @@ impl TableStyle {
     /// ╰─────────────────────────────────────────────────────────────────────────────────╯
     /// </pre>
     pub fn rounded() -> TableStyle {
-        return TableStyle {
+        TableStyle {
             top_left_corner: '╭',
             top_right_corner: '╮',
             bottom_left_corner: '╰',
@@ -211,7 +213,7 @@ impl TableStyle {
             intersection: '┼',
             vertical: '│',
             horizontal: '─',
-        };
+        }
     }
 
     /// <pre>
@@ -228,7 +230,7 @@ impl TableStyle {
     /// </pre>
 
     pub fn elegant() -> TableStyle {
-        return TableStyle {
+        TableStyle {
             top_left_corner: '╔',
             top_right_corner: '╗',
             bottom_left_corner: '╚',
@@ -240,7 +242,7 @@ impl TableStyle {
             intersection: '┼',
             vertical: '│',
             horizontal: '─',
-        };
+        }
     }
 
     /// Table style comprised of null characters
@@ -258,7 +260,7 @@ impl TableStyle {
     /// t is going to wrap to the next line
     ///</pre>
     pub fn blank() -> TableStyle {
-        return TableStyle {
+        TableStyle {
             top_left_corner: '\0',
             top_right_corner: '\0',
             bottom_left_corner: '\0',
@@ -270,7 +272,7 @@ impl TableStyle {
             intersection: '\0',
             vertical: '\0',
             horizontal: '\0',
-        };
+        }
     }
 
     /// Returns the start character of a table style based on the
@@ -304,7 +306,7 @@ impl TableStyle {
     }
 
     /// Merges two intersecting characters based on the vertical position of a row.
-    /// This is used to hanlde cases where one cell has a larger `col_span` value than the other
+    /// This is used to handle cases where one cell has a larger `col_span` value than the other
     fn merge_intersection_for_position(&self, top: char, bottom: char, pos: RowPosition) -> char {
         if (top == self.horizontal || top == self.outer_bottom_horizontal)
             && bottom == self.intersection
@@ -323,12 +325,13 @@ impl TableStyle {
 }
 
 /// A set of rows containing data
+#[derive(Clone, Debug)]
 pub struct Table<'data> {
     pub rows: Vec<Row<'data>>,
     pub style: TableStyle,
-    /// The maximum width of all columns. Overriden by values in column_widths. Defults to `std::usize::max`
+    /// The maximum width of all columns. Overridden by values in column_widths. Defaults to `std::usize::max`
     pub max_column_width: usize,
-    /// The maxium widths of specific columns. Override max_column
+    /// The maximum widths of specific columns. Override max_column
     pub max_column_widths: HashMap<usize, usize>,
     /// Whether or not to vertically separate rows in the table
     pub separate_rows: bool,
@@ -341,7 +344,7 @@ pub struct Table<'data> {
 
 impl<'data> Table<'data> {
     pub fn new() -> Table<'data> {
-        return Table {
+        Self {
             rows: Vec::new(),
             style: TableStyle::extended(),
             max_column_width: std::usize::MAX,
@@ -349,11 +352,28 @@ impl<'data> Table<'data> {
             separate_rows: true,
             has_top_boarder: true,
             has_bottom_boarder: true,
-        };
+        }
     }
 
-    /// Set the max width of a paticular column
-    pub fn set_max_column_width(&mut self, column_index: usize, width: usize) {
+    pub fn with_rows(rows: Vec<Row<'data>>) -> Table<'data> {
+        Self {
+            rows,
+            style: TableStyle::extended(),
+            max_column_width: std::usize::MAX,
+            max_column_widths: HashMap::new(),
+            separate_rows: true,
+            has_top_boarder: true,
+            has_bottom_boarder: true,
+        }
+    }
+
+    pub fn max_column_width(&mut self, max_column_width: usize) -> &mut Self {
+        self.max_column_width = max_column_width;
+        self
+    }
+
+    /// Set the max width of a particular column
+    pub fn set_max_width_for_column(&mut self, column_index: usize, width: usize) {
         self.max_column_widths.insert(column_index, width);
     }
 
@@ -377,7 +397,7 @@ impl<'data> Table<'data> {
         let mut previous_separator = None;
         if !self.rows.is_empty() {
             for i in 0..self.rows.len() {
-                let mut row_pos = if i == 0 {
+                let row_pos = if i == 0 {
                     RowPosition::First
                 } else {
                     RowPosition::Mid
@@ -461,24 +481,108 @@ impl<'data> ToString for Table<'data> {
     }
 }
 
+/// Used to create non-mutable tables
+#[derive(Clone, Debug)]
+pub struct TableBuilder<'data> {
+    rows: Vec<Row<'data>>,
+    style: TableStyle,
+    max_column_width: usize,
+    max_column_widths: HashMap<usize, usize>,
+    separate_rows: bool,
+    has_top_boarder: bool,
+    has_bottom_boarder: bool,
+}
+
+impl<'data> TableBuilder<'data> {
+    pub fn new() -> TableBuilder<'data> {
+        TableBuilder {
+            rows: Vec::new(),
+            style: TableStyle::extended(),
+            max_column_width: std::usize::MAX,
+            max_column_widths: HashMap::new(),
+            separate_rows: true,
+            has_top_boarder: true,
+            has_bottom_boarder: true,
+        }
+    }
+
+    pub fn rows(&mut self, rows: Vec<Row<'data>>) -> &mut Self {
+        self.rows = rows;
+        self
+    }
+
+    pub fn style(&mut self, style: TableStyle) -> &mut Self {
+        self.style = style;
+        self
+    }
+
+    /// The maximum width of all columns. Overridden by values in column_widths. Defaults to `std::usize::max`
+    pub fn max_column_width(&mut self, max_column_width: usize) -> &mut Self {
+        self.max_column_width = max_column_width;
+        self
+    }
+
+    /// The maximum widths of specific columns. Override max_column
+    pub fn max_column_widths(&mut self, max_column_widths: HashMap<usize, usize>) -> &mut Self {
+        self.max_column_widths = max_column_widths;
+        self
+    }
+
+    /// Whether or not to vertically separate rows in the table
+    pub fn separate_rows(&mut self, separate_rows: bool) -> &mut Self {
+        self.separate_rows = separate_rows;
+        self
+    }
+
+    /// Whether the table should have a top boarder.
+    /// Setting `has_separator` to false on the first row will have the same effect as setting this to false
+    pub fn has_top_boarder(&mut self, has_top_boarder: bool) -> &mut Self {
+        self.has_top_boarder = has_top_boarder;
+        self
+    }
+
+    /// Whether the table should have a bottom boarder
+    pub fn has_bottom_boarder(&mut self, has_bottom_boarder: bool) -> &mut Self {
+        self.has_bottom_boarder = has_bottom_boarder;
+        self
+    }
+
+    /// Build a Table using the current configuration
+    pub fn build(&self) -> Table<'data> {
+        Table {
+            rows: self.rows.clone(),
+            style: self.style,
+            max_column_width: self.max_column_width,
+            max_column_widths: self.max_column_widths.clone(),
+            separate_rows: self.separate_rows,
+            has_top_boarder: self.has_top_boarder,
+            has_bottom_boarder: self.has_bottom_boarder,
+        }
+    }
+}
+
+impl<'data> Default for TableBuilder<'data> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(test)]
 mod test {
 
-    use row::Row;
-    use table_cell::{Alignment, TableCell};
-    use Table;
-    use TableStyle;
+    use crate::row::Row;
+    use crate::table_cell::{Alignment, TableCell};
+    use crate::Table;
+    use crate::TableBuilder;
+    use crate::TableStyle;
 
     #[test]
     fn simple_table_style() {
-        let mut table = Table::new();
-
-        table.style = TableStyle::simple();
+        let mut table = TableBuilder::new().style(TableStyle::simple()).build();
 
         add_data_to_test_table(&mut table);
 
-        let expected =
-            "+---------------------------------------------------------------------------------+
+        let expected = r"+---------------------------------------------------------------------------------+
 |                            This is some centered text                           |
 +----------------------------------------+----------------------------------------+
 | This is left aligned text              |             This is right aligned text |
@@ -522,7 +626,7 @@ mod test {
             TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line\n1\n2", 2),
         ]));
 
-        let expected = "╔═══════╗
+        let expected = r"╔═══════╗
 ║ This  ║
 ║ is so ║
 ║ me ce ║
@@ -622,8 +726,7 @@ mod test {
         table.style = TableStyle::blank();
         add_data_to_test_table(&mut table);
 
-        let expected =
-            "                                                                                   
+        let expected = r"                                                                                   
                             This is some centered text                            
                                                                                    
   This is left aligned text                            This is right aligned text  
@@ -645,8 +748,7 @@ mod test {
 
         add_data_to_test_table(&mut table);
 
-        let expected =
-"╔─────────────────────────────────────────────────────────────────────────────────╗
+        let expected = r"╔─────────────────────────────────────────────────────────────────────────────────╗
 │                            This is some centered text                           │
 ╠────────────────────────────────────────╦────────────────────────────────────────╣
 │ This is left aligned text              │             This is right aligned text │
@@ -668,8 +770,7 @@ mod test {
 
         add_data_to_test_table(&mut table);
 
-        let expected =
-"┌─────────────────────────────────────────────────────────────────────────────────┐
+        let expected = r"┌─────────────────────────────────────────────────────────────────────────────────┐
 │                            This is some centered text                           │
 ├────────────────────────────────────────┬────────────────────────────────────────┤
 │ This is left aligned text              │             This is right aligned text │
@@ -692,8 +793,7 @@ mod test {
 
         add_data_to_test_table(&mut table);
 
-        let expected =
-"╭─────────────────────────────────────────────────────────────────────────────────╮
+        let expected = r"╭─────────────────────────────────────────────────────────────────────────────────╮
 │                            This is some centered text                           │
 ├────────────────────────────────────────┬────────────────────────────────────────┤
 │ This is left aligned text              │             This is right aligned text │
@@ -748,8 +848,7 @@ mod test {
             Alignment::Left,
         )]));
 
-        let expected =
-"╔═══════════════════════════════════════════════════════════════╦═══════════════════════════════╦═════════════════╦════════════════╦══╗
+        let expected = r"╔═══════════════════════════════════════════════════════════════╦═══════════════════════════════╦═════════════════╦════════════════╦══╗
 ║ Col*1*Span*2                                                  ║ Col 2 Span 1                  ║ Col 3 Span 2    ║ Col 4 Span 1   ║  ║
 ╠═══════════════════════════════╦═══════════════════════════════╬═══════════════════════════════╬═════════════════╬════════════════╬══╣
 ║ Col 1 Span 1                  ║ Col 2 Span 1                  ║ Col 3 Span 1                  ║ Col 4 Span 1    ║                ║  ║
@@ -804,8 +903,7 @@ mod test {
 
         add_data_to_test_table(&mut table);
 
-        let expected =
-            "|                            This is some centered text                           |
+        let expected = r"|                            This is some centered text                           |
 +----------------------------------------+----------------------------------------+
 | This is left aligned text              |             This is right aligned text |
 +----------------------------------------+----------------------------------------+
@@ -827,8 +925,7 @@ mod test {
 
         add_data_to_test_table(&mut table);
 
-        let expected =
-            "+---------------------------------------------------------------------------------+
+        let expected = r"+---------------------------------------------------------------------------------+
 |                            This is some centered text                           |
 +----------------------------------------+----------------------------------------+
 | This is left aligned text              |             This is right aligned text |
@@ -850,8 +947,7 @@ mod test {
 
         add_data_to_test_table(&mut table);
 
-        let expected =
-            "+---------------------------------------------------------------------------------+
+        let expected = r"+---------------------------------------------------------------------------------+
 |                            This is some centered text                           |
 | This is left aligned text              |             This is right aligned text |
 | This is left aligned text              |             This is right aligned text |
@@ -872,8 +968,7 @@ mod test {
 
         table.rows[2].has_separator = false;
 
-        let expected =
-            "+---------------------------------------------------------------------------------+
+        let expected = r"+---------------------------------------------------------------------------------+
 |                            This is some centered text                           |
 +----------------------------------------+----------------------------------------+
 | This is left aligned text              |             This is right aligned text |

@@ -1,11 +1,15 @@
-# term-table-rs
+<h1 align="center" >term-table</h1>
 
-### The purpose of term-table-rs is to make displaying table data in CLI apps easier
+<div align="center">
+ <strong>
+   CLI Tables Made Easy
+ </strong>
+</div>
 
 ![example](https://i.imgur.com/XwIzWkU.png)
 
 
-### Here is an example of how to create a table
+## Example
 
 ```rust
 let mut table = Table::new();
@@ -38,11 +42,38 @@ println!("{}", table.render());
 
 ![extended style](https://i.imgur.com/NHEg0Sf.png)
 
+### Using TableBuilder
+
+```rust
+let table = TableBuilder::new().style(TableStyle::extended()).rows(
+        vec![
+            Row::new(vec![
+                TableCell::new_with_alignment("This is some centered text", 2, Alignment::Center)
+            ]),
+            Row::new(vec![
+                TableCell::new("This is left aligned text"),
+                TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+            ]),
+            Row::new(vec![
+                TableCell::new("This is left aligned text"),
+                TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
+            ]),
+                Row::new(vec![
+                TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
+            ]),
+        ]
+    ).build();
+
+println!("{}", table.render());
+
+```
+
+
 ## Table Styles
 
 It is possible to define your own table styles by creating a new instance of `TableStyle`
 
-This is what the extend table style implementation looks like. This is the defualy style in term-table-rs
+This is what the extend table style implementation looks like. This is the default style in term-table-rs
 
 ```rust
 pub fn extended() -> TableStyle {
@@ -82,10 +113,10 @@ It is possible to control the maximum width of table columns. The `max_column_wi
 
 ## Disabling Row Separators
 
-There are a few different options for disabling row seperation. 
+There are a few different options for disabling row separation. 
 
-`Table` has three flags for controlling row seperation:
-1.  `separate_rows` dictates whether rows are seperated within the table 
+`Table` has three flags for controlling row separation:
+1.  `separate_rows` dictates whether rows are separated within the table 
     
     ![separate_rows](https://i.imgur.com/a8nAg5o.png)
 
@@ -93,10 +124,10 @@ There are a few different options for disabling row seperation.
 
     ![has_top_boarder](https://i.imgur.com/336tbDm.png)
 
-3.  `has_bottom_boarder` dicates whether or not the table has a bottom border
+3.  `has_bottom_boarder` dictates whether or not the table has a bottom border
 
     ![has_bottom_boarder](https://i.imgur.com/C0ETZFi.png)
 
-Separators can also be contolled per row by setting the `has_separator` flag on `Row`
+Separators can also be controlled per row by setting the `has_separator` flag on `Row`
 
 ![has_separator](https://i.imgur.com/VAZJnC7.png)
