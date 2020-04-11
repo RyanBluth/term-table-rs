@@ -1,6 +1,6 @@
 [package]
 name = "term-table"
-version = "1.2.0"
+version = "1.2.1"
 authors = ["Ryan Bluth <ryanbluth93@gmail.com>"]
 description = "Tables for CLI apps"
 license = "MIT"
