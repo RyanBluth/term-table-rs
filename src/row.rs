@@ -105,6 +105,7 @@ impl<'data> Row<'data> {
                                     * (cell.col_span - 1); // Subtract one since we add a vertical character to the beginning
                             }
                         }
+
                         // Finally we can push the string into the lines vec
                         line.push_str(
                             format!(
@@ -258,8 +259,13 @@ impl<'data> Row<'data> {
 
             let min = (cell.min_width() as f32 / cell.col_span as f32) as usize;
 
-            for _ in 0..cell.col_span {
-                res.push((val, min));
+            let add_one = cell.min_width() as f32 % cell.col_span as f32 > 0.001;
+            for i in 0..cell.col_span {
+                if add_one && i == cell.col_span - 1 {
+                    res.push((val + 1.0, min + 1));
+                } else {
+                    res.push((val, min));
+                }
             }
         }
 

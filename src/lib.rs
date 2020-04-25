@@ -48,7 +48,7 @@ pub mod row;
 pub mod table_cell;
 
 use crate::row::Row;
-use crate::table_cell::{Alignment, TableCell};
+use crate::table_cell::Alignment;
 
 use std::cmp::{max, min};
 use std::collections::HashMap;
@@ -261,17 +261,17 @@ impl TableStyle {
     ///</pre>
     pub fn blank() -> TableStyle {
         TableStyle {
-            top_left_corner: '\0',
-            top_right_corner: '\0',
-            bottom_left_corner: '\0',
-            bottom_right_corner: '\0',
-            outer_left_vertical: '\0',
-            outer_right_vertical: '\0',
-            outer_bottom_horizontal: '\0',
-            outer_top_horizontal: '\0',
-            intersection: '\0',
-            vertical: '\0',
-            horizontal: '\0',
+            top_left_corner: '�',
+            top_right_corner: '�',
+            bottom_left_corner: '�',
+            bottom_right_corner: '�',
+            outer_left_vertical: '�',
+            outer_right_vertical: '�',
+            outer_bottom_horizontal: '�',
+            outer_top_horizontal: '�',
+            intersection: '�',
+            vertical: '�',
+            horizontal: '�',
         }
     }
 
@@ -460,6 +460,23 @@ impl<'data> Table<'data> {
                 max_widths[i] = min(max_width, max(max_widths[i], column_widths[i].0 as usize));
             }
         }
+
+        // Here we are dealing with the case where we have a cell that is center
+        // aligned but the max_width doesn't allow for even padding on either side
+        let mut col_index = 0;
+        for row in &self.rows {
+            for cell in &row.cells {
+                let mut total_col_width = 0;
+                for i in 0..cell.col_span {
+                    total_col_width += max_widths[i];
+                }
+                col_index += cell.col_span - 1;
+                if cell.alignment == Alignment::Center && total_col_width as f32 % 2.0 <= 0.001 {
+                    max_widths[col_index] += 1;
+                }
+            }
+        }
+
         return max_widths;
     }
 
@@ -577,21 +594,68 @@ mod test {
     use crate::TableStyle;
 
     #[test]
+    fn correct_default_padding() {
+        let mut table = Table::new();
+        table.separate_rows = false;
+        table.style = TableStyle::simple();
+        table.add_row(Row::new(vec![
+            TableCell::new_with_alignment("A", 1, Alignment::Center),
+            TableCell::new_with_alignment("B", 1, Alignment::Center),
+        ]));
+        table.add_row(Row::new(vec![TableCell::new(1), TableCell::new("1")]));
+        table.add_row(Row::new(vec![TableCell::new(2), TableCell::new("10")]));
+        table.add_row(Row::new(vec![TableCell::new(3), TableCell::new("100")]));
+        let expected = r"+---+-----+
+| A |  B  |
+| 1 | 1   |
+| 2 | 10  |
+| 3 | 100 |
++---+-----+
+";
+        println!("{}", table.render());
+        assert_eq!(expected, table.render());
+    }
+
+    #[test]
+    fn uneven_center_alignment() {
+        let mut table = Table::new();
+        table.separate_rows = false;
+        table.style = TableStyle::simple();
+        table.add_row(Row::new(vec![TableCell::new_with_alignment(
+            "A",
+            1,
+            Alignment::Center,
+        )]));
+        table.add_row(Row::new(vec![TableCell::new(11)]));
+        table.add_row(Row::new(vec![TableCell::new(2)]));
+        table.add_row(Row::new(vec![TableCell::new(3)]));
+        let expected = r"+-----+
+|  A  |
+| 11  |
+| 2   |
+| 3   |
++-----+
+";
+        println!("{}", table.render());
+        assert_eq!(expected, table.render());
+    }
+
+    #[test]
     fn simple_table_style() {
         let mut table = TableBuilder::new().style(TableStyle::simple()).build();
 
         add_data_to_test_table(&mut table);
 
-        let expected = r"+---------------------------------------------------------------------------------+
-|                            This is some centered text                           |
-+----------------------------------------+----------------------------------------+
-| This is left aligned text              |             This is right aligned text |
-+----------------------------------------+----------------------------------------+
-| This is left aligned text              |             This is right aligned text |
-+----------------------------------------+----------------------------------------+
-| This is some really really really really really really really really really tha |
-| t is going to wrap to the next line                                             |
-+---------------------------------------------------------------------------------+
+        let expected = r"+----------------------------------------------------------------------------------+
+|                            This is some centered text                            |
++----------------------------------------+-----------------------------------------+
+| This is left aligned text              |              This is right aligned text |
++----------------------------------------+-----------------------------------------+
+| This is left aligned text              |              This is right aligned text |
++----------------------------------------+-----------------------------------------+
+| This is some really really really really really really really really really that |
+|  is going to wrap to the next line                                               |
++----------------------------------------------------------------------------------+
 ";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
@@ -626,94 +690,88 @@ mod test {
             TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line\n1\n2", 2),
         ]));
 
-        let expected = r"╔═══════╗
-║ This  ║
-║ is so ║
-║ me ce ║
-║ ntere ║
-║ d tex ║
-║   t   ║
-╠═══╦═══╣
-║ T ║ T ║
-║ h ║ h ║
-║ i ║ i ║
-║ s ║ s ║
-║   ║   ║
-║ i ║ i ║
-║ s ║ s ║
-║   ║   ║
-║ l ║ r ║
-║ e ║ i ║
-║ f ║ g ║
-║ t ║ h ║
-║   ║ t ║
-║ a ║   ║
-║ l ║ a ║
-║ i ║ l ║
-║ g ║ i ║
-║ n ║ g ║
-║ e ║ n ║
-║ d ║ e ║
-║   ║ d ║
-║ t ║   ║
-║ e ║ t ║
-║ x ║ e ║
-║ t ║ x ║
-║   ║ t ║
-╠═══╬═══╣
-║ T ║ T ║
-║ h ║ h ║
-║ i ║ i ║
-║ s ║ s ║
-║   ║   ║
-║ i ║ i ║
-║ s ║ s ║
-║   ║   ║
-║ l ║ r ║
-║ e ║ i ║
-║ f ║ g ║
-║ t ║ h ║
-║   ║ t ║
-║ a ║   ║
-║ l ║ a ║
-║ i ║ l ║
-║ g ║ i ║
-║ n ║ g ║
-║ e ║ n ║
-║ d ║ e ║
-║   ║ d ║
-║ t ║   ║
-║ e ║ t ║
-║ x ║ e ║
-║ t ║ x ║
-║   ║ t ║
-╠═══╩═══╣
-║ This  ║
-║ is so ║
-║ me re ║
-║ ally  ║
-║ reall ║
-║ y rea ║
-║ lly r ║
-║ eally ║
-║  real ║
-║ ly re ║
-║ ally  ║
-║ reall ║
-║ y rea ║
-║ lly r ║
-║ eally ║
-║  that ║
-║  is g ║
-║ oing  ║
-║ to wr ║
-║ ap to ║
-║  the  ║
-║ next  ║
-║ line  ║
-║ 1     ║
-║ 2     ║
-╚═══════╝
+        let expected = 
+r"╔════════╗
+║ This i ║
+║ s some ║
+║  cente ║
+║ red te ║
+║   xt   ║
+╠═══╦════╣
+║ T ║ Th ║
+║ h ║ is ║
+║ i ║  i ║
+║ s ║ s  ║
+║   ║ ri ║
+║ i ║ gh ║
+║ s ║ t  ║
+║   ║ al ║
+║ l ║ ig ║
+║ e ║ ne ║
+║ f ║ d  ║
+║ t ║ te ║
+║   ║ xt ║
+║ a ║    ║
+║ l ║    ║
+║ i ║    ║
+║ g ║    ║
+║ n ║    ║
+║ e ║    ║
+║ d ║    ║
+║   ║    ║
+║ t ║    ║
+║ e ║    ║
+║ x ║    ║
+║ t ║    ║
+╠═══╬════╣
+║ T ║ Th ║
+║ h ║ is ║
+║ i ║  i ║
+║ s ║ s  ║
+║   ║ ri ║
+║ i ║ gh ║
+║ s ║ t  ║
+║   ║ al ║
+║ l ║ ig ║
+║ e ║ ne ║
+║ f ║ d  ║
+║ t ║ te ║
+║   ║ xt ║
+║ a ║    ║
+║ l ║    ║
+║ i ║    ║
+║ g ║    ║
+║ n ║    ║
+║ e ║    ║
+║ d ║    ║
+║   ║    ║
+║ t ║    ║
+║ e ║    ║
+║ x ║    ║
+║ t ║    ║
+╠═══╩════╣
+║ This i ║
+║ s some ║
+║  reall ║
+║ y real ║
+║ ly rea ║
+║ lly re ║
+║ ally r ║
+║ eally  ║
+║ really ║
+║  reall ║
+║ y real ║
+║ ly rea ║
+║ lly th ║
+║ at is  ║
+║ going  ║
+║ to wra ║
+║ p to t ║
+║ he nex ║
+║ t line ║
+║ 1      ║
+║ 2      ║
+╚════════╝
 ";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
@@ -726,20 +784,23 @@ mod test {
         table.style = TableStyle::blank();
         add_data_to_test_table(&mut table);
 
-        let expected = r"                                                                                   
-                            This is some centered text                            
-                                                                                   
-  This is left aligned text                            This is right aligned text  
-                                                                                   
-  This is left aligned text                            This is right aligned text  
-                                                                                   
-  This is some really really really really really really really really really tha  
-  t is going to wrap to the next line                                             
-                                                                                   
-";
+        let expected = 
+r#"������������������������������������������������������������������������������������
+�                            This is some centered text                            �
+������������������������������������������������������������������������������������
+� This is left aligned text              �              This is right aligned text �
+������������������������������������������������������������������������������������
+� This is left aligned text              �              This is right aligned text �
+������������������������������������������������������������������������������������
+� This is some really really really really really really really really really that �
+�  is going to wrap to the next line                                               �
+������������������������������������������������������������������������������������
+"#;
+
         println!("{}", table.render());
         assert_eq!(expected, table.render());
     }
+    
 
     #[test]
     fn elegant_table_style() {
@@ -748,16 +809,16 @@ mod test {
 
         add_data_to_test_table(&mut table);
 
-        let expected = r"╔─────────────────────────────────────────────────────────────────────────────────╗
-│                            This is some centered text                           │
-╠────────────────────────────────────────╦────────────────────────────────────────╣
-│ This is left aligned text              │             This is right aligned text │
-╠────────────────────────────────────────┼────────────────────────────────────────╣
-│ This is left aligned text              │             This is right aligned text │
-╠────────────────────────────────────────╩────────────────────────────────────────╣
-│ This is some really really really really really really really really really tha │
-│ t is going to wrap to the next line                                             │
-╚─────────────────────────────────────────────────────────────────────────────────╝
+        let expected = r"╔──────────────────────────────────────────────────────────────────────────────────╗
+│                            This is some centered text                            │
+╠────────────────────────────────────────╦─────────────────────────────────────────╣
+│ This is left aligned text              │              This is right aligned text │
+╠────────────────────────────────────────┼─────────────────────────────────────────╣
+│ This is left aligned text              │              This is right aligned text │
+╠────────────────────────────────────────╩─────────────────────────────────────────╣
+│ This is some really really really really really really really really really that │
+│  is going to wrap to the next line                                               │
+╚──────────────────────────────────────────────────────────────────────────────────╝
 ";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
@@ -770,16 +831,17 @@ mod test {
 
         add_data_to_test_table(&mut table);
 
-        let expected = r"┌─────────────────────────────────────────────────────────────────────────────────┐
-│                            This is some centered text                           │
-├────────────────────────────────────────┬────────────────────────────────────────┤
-│ This is left aligned text              │             This is right aligned text │
-├────────────────────────────────────────┼────────────────────────────────────────┤
-│ This is left aligned text              │             This is right aligned text │
-├────────────────────────────────────────┴────────────────────────────────────────┤
-│ This is some really really really really really really really really really tha │
-│ t is going to wrap to the next line                                             │
-└─────────────────────────────────────────────────────────────────────────────────┘
+        let expected = 
+r"┌──────────────────────────────────────────────────────────────────────────────────┐
+│                            This is some centered text                            │
+├────────────────────────────────────────┬─────────────────────────────────────────┤
+│ This is left aligned text              │              This is right aligned text │
+├────────────────────────────────────────┼─────────────────────────────────────────┤
+│ This is left aligned text              │              This is right aligned text │
+├────────────────────────────────────────┴─────────────────────────────────────────┤
+│ This is some really really really really really really really really really that │
+│  is going to wrap to the next line                                               │
+└──────────────────────────────────────────────────────────────────────────────────┘
 ";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
@@ -793,16 +855,17 @@ mod test {
 
         add_data_to_test_table(&mut table);
 
-        let expected = r"╭─────────────────────────────────────────────────────────────────────────────────╮
-│                            This is some centered text                           │
-├────────────────────────────────────────┬────────────────────────────────────────┤
-│ This is left aligned text              │             This is right aligned text │
-├────────────────────────────────────────┼────────────────────────────────────────┤
-│ This is left aligned text              │             This is right aligned text │
-├────────────────────────────────────────┴────────────────────────────────────────┤
-│ This is some really really really really really really really really really tha │
-│ t is going to wrap to the next line                                             │
-╰─────────────────────────────────────────────────────────────────────────────────╯
+        let expected = 
+r"╭──────────────────────────────────────────────────────────────────────────────────╮
+│                            This is some centered text                            │
+├────────────────────────────────────────┬─────────────────────────────────────────┤
+│ This is left aligned text              │              This is right aligned text │
+├────────────────────────────────────────┼─────────────────────────────────────────┤
+│ This is left aligned text              │              This is right aligned text │
+├────────────────────────────────────────┴─────────────────────────────────────────┤
+│ This is some really really really really really really really really really that │
+│  is going to wrap to the next line                                               │
+╰──────────────────────────────────────────────────────────────────────────────────╯
 ";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
@@ -848,51 +911,51 @@ mod test {
             Alignment::Left,
         )]));
 
-        let expected = r"╔═══════════════════════════════════════════════════════════════╦═══════════════════════════════╦═════════════════╦════════════════╦══╗
-║ Col*1*Span*2                                                  ║ Col 2 Span 1                  ║ Col 3 Span 2    ║ Col 4 Span 1   ║  ║
-╠═══════════════════════════════╦═══════════════════════════════╬═══════════════════════════════╬═════════════════╬════════════════╬══╣
-║ Col 1 Span 1                  ║ Col 2 Span 1                  ║ Col 3 Span 1                  ║ Col 4 Span 1    ║                ║  ║
-╠═══════════════════════════════╬═══════════════════════════════╬═══════════════════════════════╬════════╦════════╬════════════════╬══╣
-║ fasdaff                       ║ fff                           ║ fff                           ║        ║        ║                ║  ║
-╠═══════════════════════════════╩═══════════════════════════════╩═══════════════════════════════╬════════╩════════╩════════════════╩══╣
-║                                                                                        fasdff ║ fffdff                              ║
-╠═══════════════════════════════╦═══════════════════════════════╦═══════════════════════════════╬════════╦════════╦════════════════╦══╣
-║ fasdsaff                      ║ fff                           ║ f                             ║        ║        ║                ║  ║
-║                               ║                               ║ f                             ║        ║        ║                ║  ║
-║                               ║                               ║ f                             ║        ║        ║                ║  ║
-║                               ║                               ║ fff                           ║        ║        ║                ║  ║
-║                               ║                               ║ rrr                           ║        ║        ║                ║  ║
-║                               ║                               ║                               ║        ║        ║                ║  ║
-║                               ║                               ║                               ║        ║        ║                ║  ║
-║                               ║                               ║                               ║        ║        ║                ║  ║
-╠═══════════════════════════════╬═══════════════════════════════╬═══════════════════════════════╬════════╬════════╬════════════════╬══╣
-║ fasdsaff                      ║                               ║                               ║        ║        ║                ║  ║
-╠═══════════════════════════════╩═══════════════════════════════╩═══════════════════════════════╬════════╬════════╬════════════════╬══╣
-║ ╔═════════════════════════════════╦════════════════╦═════════════════╦════════════════╦══╗    ║        ║        ║                ║  ║
-║ ║ Col*1*Span*2                    ║ Col 2 Span 1   ║ Col 3 Span 2    ║ Col 4 Span 1   ║  ║    ║        ║        ║                ║  ║
-║ ╠════════════════╦════════════════╬════════════════╬═════════════════╬════════════════╬══╣    ║        ║        ║                ║  ║
-║ ║ Col 1 Span 1   ║ Col 2 Span 1   ║ Col 3 Span 1   ║ Col 4 Span 1    ║                ║  ║    ║        ║        ║                ║  ║
-║ ╠════════════════╬════════════════╬════════════════╬════════╦════════╬════════════════╬══╣    ║        ║        ║                ║  ║
-║ ║ fasdaff        ║ fff            ║ fff            ║        ║        ║                ║  ║    ║        ║        ║                ║  ║
-║ ╠════════════════╩════════════════╩════════════════╬════════╩════════╩════════════════╩══╣    ║        ║        ║                ║  ║
-║ ║                                           fasdff ║ fffdff                              ║    ║        ║        ║                ║  ║
-║ ╠════════════════╦════════════════╦════════════════╬════════╦════════╦════════════════╦══╣    ║        ║        ║                ║  ║
-║ ║ fasdsaff       ║ fff            ║ f              ║        ║        ║                ║  ║    ║        ║        ║                ║  ║
-║ ║                ║                ║ f              ║        ║        ║                ║  ║    ║        ║        ║                ║  ║
-║ ║                ║                ║ f              ║        ║        ║                ║  ║    ║        ║        ║                ║  ║
-║ ║                ║                ║ fff            ║        ║        ║                ║  ║    ║        ║        ║                ║  ║
-║ ║                ║                ║ rrr            ║        ║        ║                ║  ║    ║        ║        ║                ║  ║
-║ ║                ║                ║                ║        ║        ║                ║  ║    ║        ║        ║                ║  ║
-║ ║                ║                ║                ║        ║        ║                ║  ║    ║        ║        ║                ║  ║
-║ ║                ║                ║                ║        ║        ║                ║  ║    ║        ║        ║                ║  ║
-║ ╠════════════════╬════════════════╬════════════════╬════════╬════════╬════════════════╬══╣    ║        ║        ║                ║  ║
-║ ║ fasdsaff       ║                ║                ║        ║        ║                ║  ║    ║        ║        ║                ║  ║
-║ ╚════════════════╩════════════════╩════════════════╩════════╩════════╩════════════════╩══╝    ║        ║        ║                ║  ║
-║                                                                                               ║        ║        ║                ║  ║
-╚═══════════════════════════════════════════════════════════════════════════════════════════════╩════════╩════════╩════════════════╩══╝
+        let expected = r"╔═════════════════════════════════════════════════════════╦════════════════════════════╦════════════════╦══════════════╦═══╗
+║ Col*1*Span*2                                            ║ Col 2 Span 1               ║ Col 3 Span 2   ║ Col 4 Span 1 ║   ║
+╠════════════════════════════╦════════════════════════════╬════════════════════════════╬════════════════╬══════════════╬═══╣
+║ Col 1 Span 1               ║ Col 2 Span 1               ║ Col 3 Span 1               ║ Col 4 Span 1   ║              ║   ║
+╠════════════════════════════╬════════════════════════════╬════════════════════════════╬═══════╦════════╬══════════════╬═══╣
+║ fasdaff                    ║ fff                        ║ fff                        ║       ║        ║              ║   ║
+╠════════════════════════════╩════════════════════════════╩════════════════════════════╬═══════╩════════╩══════════════╩═══╣
+║                                                                               fasdff ║ fffdff                            ║
+╠════════════════════════════╦════════════════════════════╦════════════════════════════╬═══════╦════════╦══════════════╦═══╣
+║ fasdsaff                   ║ fff                        ║ f                          ║       ║        ║              ║   ║
+║                            ║                            ║ f                          ║       ║        ║              ║   ║
+║                            ║                            ║ f                          ║       ║        ║              ║   ║
+║                            ║                            ║ fff                        ║       ║        ║              ║   ║
+║                            ║                            ║ rrr                        ║       ║        ║              ║   ║
+║                            ║                            ║                            ║       ║        ║              ║   ║
+║                            ║                            ║                            ║       ║        ║              ║   ║
+║                            ║                            ║                            ║       ║        ║              ║   ║
+╠════════════════════════════╬════════════════════════════╬════════════════════════════╬═══════╬════════╬══════════════╬═══╣
+║ fasdsaff                   ║                            ║                            ║       ║        ║              ║   ║
+╠════════════════════════════╩════════════════════════════╩════════════════════════════╬═══════╬════════╬══════════════╬═══╣
+║ ╔═════════════════════════════╦══════════════╦════════════════╦══════════════╦═══╗   ║       ║        ║              ║   ║
+║ ║ Col*1*Span*2                ║ Col 2 Span 1 ║ Col 3 Span 2   ║ Col 4 Span 1 ║   ║   ║       ║        ║              ║   ║
+║ ╠══════════════╦══════════════╬══════════════╬════════════════╬══════════════╬═══╣   ║       ║        ║              ║   ║
+║ ║ Col 1 Span 1 ║ Col 2 Span 1 ║ Col 3 Span 1 ║ Col 4 Span 1   ║              ║   ║   ║       ║        ║              ║   ║
+║ ╠══════════════╬══════════════╬══════════════╬═══════╦════════╬══════════════╬═══╣   ║       ║        ║              ║   ║
+║ ║ fasdaff      ║ fff          ║ fff          ║       ║        ║              ║   ║   ║       ║        ║              ║   ║
+║ ╠══════════════╩══════════════╩══════════════╬═══════╩════════╩══════════════╩═══╣   ║       ║        ║              ║   ║
+║ ║                                     fasdff ║ fffdff                            ║   ║       ║        ║              ║   ║
+║ ╠══════════════╦══════════════╦══════════════╬═══════╦════════╦══════════════╦═══╣   ║       ║        ║              ║   ║
+║ ║ fasdsaff     ║ fff          ║ f            ║       ║        ║              ║   ║   ║       ║        ║              ║   ║
+║ ║              ║              ║ f            ║       ║        ║              ║   ║   ║       ║        ║              ║   ║
+║ ║              ║              ║ f            ║       ║        ║              ║   ║   ║       ║        ║              ║   ║
+║ ║              ║              ║ fff          ║       ║        ║              ║   ║   ║       ║        ║              ║   ║
+║ ║              ║              ║ rrr          ║       ║        ║              ║   ║   ║       ║        ║              ║   ║
+║ ║              ║              ║              ║       ║        ║              ║   ║   ║       ║        ║              ║   ║
+║ ║              ║              ║              ║       ║        ║              ║   ║   ║       ║        ║              ║   ║
+║ ║              ║              ║              ║       ║        ║              ║   ║   ║       ║        ║              ║   ║
+║ ╠══════════════╬══════════════╬══════════════╬═══════╬════════╬══════════════╬═══╣   ║       ║        ║              ║   ║
+║ ║ fasdsaff     ║              ║              ║       ║        ║              ║   ║   ║       ║        ║              ║   ║
+║ ╚══════════════╩══════════════╩══════════════╩═══════╩════════╩══════════════╩═══╝   ║       ║        ║              ║   ║
+║                                                                                      ║       ║        ║              ║   ║
+╚══════════════════════════════════════════════════════════════════════════════════════╩═══════╩════════╩══════════════╩═══╝
 ";
-        assert_eq!(expected, table.render());
         println!("{}", table.render());
+        assert_eq!(expected, table.render());
     }
 
     #[test]
@@ -903,15 +966,16 @@ mod test {
 
         add_data_to_test_table(&mut table);
 
-        let expected = r"|                            This is some centered text                           |
-+----------------------------------------+----------------------------------------+
-| This is left aligned text              |             This is right aligned text |
-+----------------------------------------+----------------------------------------+
-| This is left aligned text              |             This is right aligned text |
-+----------------------------------------+----------------------------------------+
-| This is some really really really really really really really really really tha |
-| t is going to wrap to the next line                                             |
-+---------------------------------------------------------------------------------+
+        let expected =
+r"|                            This is some centered text                            |
++----------------------------------------+-----------------------------------------+
+| This is left aligned text              |              This is right aligned text |
++----------------------------------------+-----------------------------------------+
+| This is left aligned text              |              This is right aligned text |
++----------------------------------------+-----------------------------------------+
+| This is some really really really really really really really really really that |
+|  is going to wrap to the next line                                               |
++----------------------------------------------------------------------------------+
 ";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
@@ -925,15 +989,16 @@ mod test {
 
         add_data_to_test_table(&mut table);
 
-        let expected = r"+---------------------------------------------------------------------------------+
-|                            This is some centered text                           |
-+----------------------------------------+----------------------------------------+
-| This is left aligned text              |             This is right aligned text |
-+----------------------------------------+----------------------------------------+
-| This is left aligned text              |             This is right aligned text |
-+----------------------------------------+----------------------------------------+
-| This is some really really really really really really really really really tha |
-| t is going to wrap to the next line                                             |
+        let expected = 
+r"+----------------------------------------------------------------------------------+
+|                            This is some centered text                            |
++----------------------------------------+-----------------------------------------+
+| This is left aligned text              |              This is right aligned text |
++----------------------------------------+-----------------------------------------+
+| This is left aligned text              |              This is right aligned text |
++----------------------------------------+-----------------------------------------+
+| This is some really really really really really really really really really that |
+|  is going to wrap to the next line                                               |
 ";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
@@ -947,13 +1012,14 @@ mod test {
 
         add_data_to_test_table(&mut table);
 
-        let expected = r"+---------------------------------------------------------------------------------+
-|                            This is some centered text                           |
-| This is left aligned text              |             This is right aligned text |
-| This is left aligned text              |             This is right aligned text |
-| This is some really really really really really really really really really tha |
-| t is going to wrap to the next line                                             |
-+---------------------------------------------------------------------------------+
+        let expected = 
+r"+----------------------------------------------------------------------------------+
+|                            This is some centered text                            |
+| This is left aligned text              |              This is right aligned text |
+| This is left aligned text              |              This is right aligned text |
+| This is some really really really really really really really really really that |
+|  is going to wrap to the next line                                               |
++----------------------------------------------------------------------------------+
 ";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
@@ -968,15 +1034,16 @@ mod test {
 
         table.rows[2].has_separator = false;
 
-        let expected = r"+---------------------------------------------------------------------------------+
-|                            This is some centered text                           |
-+----------------------------------------+----------------------------------------+
-| This is left aligned text              |             This is right aligned text |
-| This is left aligned text              |             This is right aligned text |
-+----------------------------------------+----------------------------------------+
-| This is some really really really really really really really really really tha |
-| t is going to wrap to the next line                                             |
-+---------------------------------------------------------------------------------+
+        let expected = 
+r"+----------------------------------------------------------------------------------+
+|                            This is some centered text                            |
++----------------------------------------+-----------------------------------------+
+| This is left aligned text              |              This is right aligned text |
+| This is left aligned text              |              This is right aligned text |
++----------------------------------------+-----------------------------------------+
+| This is some really really really really really really really really really that |
+|  is going to wrap to the next line                                               |
++----------------------------------------------------------------------------------+
 ";
         println!("{}", table.render());
         assert_eq!(expected, table.render());

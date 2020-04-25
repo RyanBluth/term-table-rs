@@ -7,7 +7,7 @@ use unicode_width::UnicodeWidthChar;
 use unicode_width::UnicodeWidthStr;
 
 /// Represents the horizontal alignment of content within a cell.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Alignment {
     Left,
     Right,
@@ -91,11 +91,7 @@ impl<'data> TableCell<'data> {
             let str_width = string_width(&s);
             max = cmp::max(max, str_width);
         }
-        max + if self.pad_content {
-            2 * ' '.width().unwrap_or(1) as usize
-        } else {
-            0
-        }
+        max
     }
 
     /// The width of the cell's content divided by its `col_span` value.
