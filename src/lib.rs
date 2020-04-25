@@ -261,17 +261,17 @@ impl TableStyle {
     ///</pre>
     pub fn blank() -> TableStyle {
         TableStyle {
-            top_left_corner: '�',
-            top_right_corner: '�',
-            bottom_left_corner: '�',
-            bottom_right_corner: '�',
-            outer_left_vertical: '�',
-            outer_right_vertical: '�',
-            outer_bottom_horizontal: '�',
-            outer_top_horizontal: '�',
-            intersection: '�',
-            vertical: '�',
-            horizontal: '�',
+            top_left_corner: '\0',
+            top_right_corner: '\0',
+            bottom_left_corner: '\0',
+            bottom_right_corner: '\0',
+            outer_left_vertical: '\0',
+            outer_right_vertical: '\0',
+            outer_bottom_horizontal: '\0',
+            outer_top_horizontal: '\0',
+            intersection: '\0',
+            vertical: '\0',
+            horizontal: '\0',
         }
     }
 
@@ -777,31 +777,7 @@ r"╔════════╗
         assert_eq!(expected, table.render());
     }
 
-    #[test]
-    fn blank_table_style() {
-        let mut table = Table::new();
-
-        table.style = TableStyle::blank();
-        add_data_to_test_table(&mut table);
-
-        let expected = 
-r#"������������������������������������������������������������������������������������
-�                            This is some centered text                            �
-������������������������������������������������������������������������������������
-� This is left aligned text              �              This is right aligned text �
-������������������������������������������������������������������������������������
-� This is left aligned text              �              This is right aligned text �
-������������������������������������������������������������������������������������
-� This is some really really really really really really really really really that �
-�  is going to wrap to the next line                                               �
-������������������������������������������������������������������������������������
-"#;
-
-        println!("{}", table.render());
-        assert_eq!(expected, table.render());
-    }
     
-
     #[test]
     fn elegant_table_style() {
         let mut table = Table::new();
