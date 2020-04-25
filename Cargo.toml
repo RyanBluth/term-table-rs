@@ -14,3 +14,6 @@ edition = "2018"
 lazy_static = "1"
 regex = "1"
 unicode-width = "0.1"
+
+[dev-dependencies]
+pretty_assertions = "0.6.1"

@@ -463,16 +463,24 @@ impl<'data> Table<'data> {
 
         // Here we are dealing with the case where we have a cell that is center
         // aligned but the max_width doesn't allow for even padding on either side
-        let mut col_index = 0;
         for row in &self.rows {
+            let mut col_index = 0;
             for cell in &row.cells {
                 let mut total_col_width = 0;
-                for i in 0..cell.col_span {
+                for i in col_index..col_index + cell.col_span {
                     total_col_width += max_widths[i];
                 }
-                col_index += cell.col_span - 1;
-                if cell.alignment == Alignment::Center && total_col_width as f32 % 2.0 <= 0.001 {
+                
+                if cell.width() != total_col_width
+                    && cell.alignment == Alignment::Center
+                    && total_col_width as f32 % 2.0 <= 0.001
+                {
                     max_widths[col_index] += 1;
+                }
+                if cell.col_span > 1{
+                    col_index += cell.col_span - 1;
+                }else{
+                    col_index += 1;
                 }
             }
         }
@@ -592,6 +600,7 @@ mod test {
     use crate::Table;
     use crate::TableBuilder;
     use crate::TableStyle;
+    use pretty_assertions::{assert_eq};
 
     #[test]
     fn correct_default_padding() {
@@ -641,18 +650,38 @@ mod test {
     }
 
     #[test]
+    fn uneven_center_alignment_2() {
+        let mut table = Table::new();
+        table.separate_rows = false;
+        table.style = TableStyle::simple();
+        table.add_row(Row::new(vec![
+            TableCell::new_with_alignment("A1", 1, Alignment::Center),
+            TableCell::new_with_alignment("B", 1, Alignment::Center),
+        ]));
+        println!("{}", table.render());
+        let expected = 
+r"+----+---+
+| A1 | B |
++----+---+
+";
+        println!("{}", table.render());
+        assert_eq!(expected, table.render());
+    }
+
+    #[test]
     fn simple_table_style() {
         let mut table = TableBuilder::new().style(TableStyle::simple()).build();
 
         add_data_to_test_table(&mut table);
 
-        let expected = r"+----------------------------------------------------------------------------------+
+        let expected = 
+r"+----------------------------------------------------------------------------------+
 |                            This is some centered text                            |
-+----------------------------------------+-----------------------------------------+
-| This is left aligned text              |              This is right aligned text |
-+----------------------------------------+-----------------------------------------+
-| This is left aligned text              |              This is right aligned text |
-+----------------------------------------+-----------------------------------------+
++-----------------------------------------+----------------------------------------+
+| This is left aligned text               |             This is right aligned text |
++-----------------------------------------+----------------------------------------+
+| This is left aligned text               |             This is right aligned text |
++-----------------------------------------+----------------------------------------+
 | This is some really really really really really really really really really that |
 |  is going to wrap to the next line                                               |
 +----------------------------------------------------------------------------------+
@@ -697,59 +726,61 @@ r"╔════════╗
 ║  cente ║
 ║ red te ║
 ║   xt   ║
-╠═══╦════╣
-║ T ║ Th ║
-║ h ║ is ║
-║ i ║  i ║
-║ s ║ s  ║
-║   ║ ri ║
-║ i ║ gh ║
-║ s ║ t  ║
-║   ║ al ║
-║ l ║ ig ║
-║ e ║ ne ║
-║ f ║ d  ║
-║ t ║ te ║
-║   ║ xt ║
-║ a ║    ║
-║ l ║    ║
-║ i ║    ║
-║ g ║    ║
-║ n ║    ║
-║ e ║    ║
-║ d ║    ║
-║   ║    ║
-║ t ║    ║
-║ e ║    ║
-║ x ║    ║
-║ t ║    ║
-╠═══╬════╣
-║ T ║ Th ║
-║ h ║ is ║
-║ i ║  i ║
-║ s ║ s  ║
-║   ║ ri ║
-║ i ║ gh ║
-║ s ║ t  ║
-║   ║ al ║
-║ l ║ ig ║
-║ e ║ ne ║
-║ f ║ d  ║
-║ t ║ te ║
-║   ║ xt ║
-║ a ║    ║
-║ l ║    ║
-║ i ║    ║
-║ g ║    ║
-║ n ║    ║
-║ e ║    ║
-║ d ║    ║
-║   ║    ║
-║ t ║    ║
-║ e ║    ║
-║ x ║    ║
-║ t ║    ║
-╠═══╩════╣
+╠════╦═══╣
+║ Th ║ T ║
+║ is ║ h ║
+║  i ║ i ║
+║ s  ║ s ║
+║ le ║   ║
+║ ft ║ i ║
+║  a ║ s ║
+║ li ║   ║
+║ gn ║ r ║
+║ ed ║ i ║
+║  t ║ g ║
+║ ex ║ h ║
+║ t  ║ t ║
+║    ║   ║
+║    ║ a ║
+║    ║ l ║
+║    ║ i ║
+║    ║ g ║
+║    ║ n ║
+║    ║ e ║
+║    ║ d ║
+║    ║   ║
+║    ║ t ║
+║    ║ e ║
+║    ║ x ║
+║    ║ t ║
+╠════╬═══╣
+║ Th ║ T ║
+║ is ║ h ║
+║  i ║ i ║
+║ s  ║ s ║
+║ le ║   ║
+║ ft ║ i ║
+║  a ║ s ║
+║ li ║   ║
+║ gn ║ r ║
+║ ed ║ i ║
+║  t ║ g ║
+║ ex ║ h ║
+║ t  ║ t ║
+║    ║   ║
+║    ║ a ║
+║    ║ l ║
+║    ║ i ║
+║    ║ g ║
+║    ║ n ║
+║    ║ e ║
+║    ║ d ║
+║    ║   ║
+║    ║ t ║
+║    ║ e ║
+║    ║ x ║
+║    ║ t ║
+╠════╩═══╣
 ║ This i ║
 ║ s some ║
 ║  reall ║
@@ -785,13 +816,14 @@ r"╔════════╗
 
         add_data_to_test_table(&mut table);
 
-        let expected = r"╔──────────────────────────────────────────────────────────────────────────────────╗
+        let expected = 
+r"╔──────────────────────────────────────────────────────────────────────────────────╗
 │                            This is some centered text                            │
-╠────────────────────────────────────────╦─────────────────────────────────────────╣
-│ This is left aligned text              │              This is right aligned text │
-╠────────────────────────────────────────┼─────────────────────────────────────────╣
-│ This is left aligned text              │              This is right aligned text │
-╠────────────────────────────────────────╩─────────────────────────────────────────╣
+╠─────────────────────────────────────────╦────────────────────────────────────────╣
+│ This is left aligned text               │             This is right aligned text │
+╠─────────────────────────────────────────┼────────────────────────────────────────╣
+│ This is left aligned text               │             This is right aligned text │
+╠─────────────────────────────────────────╩────────────────────────────────────────╣
 │ This is some really really really really really really really really really that │
 │  is going to wrap to the next line                                               │
 ╚──────────────────────────────────────────────────────────────────────────────────╝
@@ -810,11 +842,11 @@ r"╔════════╗
         let expected = 
 r"┌──────────────────────────────────────────────────────────────────────────────────┐
 │                            This is some centered text                            │
-├────────────────────────────────────────┬─────────────────────────────────────────┤
-│ This is left aligned text              │              This is right aligned text │
-├────────────────────────────────────────┼─────────────────────────────────────────┤
-│ This is left aligned text              │              This is right aligned text │
-├────────────────────────────────────────┴─────────────────────────────────────────┤
+├─────────────────────────────────────────┬────────────────────────────────────────┤
+│ This is left aligned text               │             This is right aligned text │
+├─────────────────────────────────────────┼────────────────────────────────────────┤
+│ This is left aligned text               │             This is right aligned text │
+├─────────────────────────────────────────┴────────────────────────────────────────┤
 │ This is some really really really really really really really really really that │
 │  is going to wrap to the next line                                               │
 └──────────────────────────────────────────────────────────────────────────────────┘
@@ -834,11 +866,11 @@ r"┌─────────────────────────
         let expected = 
 r"╭──────────────────────────────────────────────────────────────────────────────────╮
 │                            This is some centered text                            │
-├────────────────────────────────────────┬─────────────────────────────────────────┤
-│ This is left aligned text              │              This is right aligned text │
-├────────────────────────────────────────┼─────────────────────────────────────────┤
-│ This is left aligned text              │              This is right aligned text │
-├────────────────────────────────────────┴─────────────────────────────────────────┤
+├─────────────────────────────────────────┬────────────────────────────────────────┤
+│ This is left aligned text               │             This is right aligned text │
+├─────────────────────────────────────────┼────────────────────────────────────────┤
+│ This is left aligned text               │             This is right aligned text │
+├─────────────────────────────────────────┴────────────────────────────────────────┤
 │ This is some really really really really really really really really really that │
 │  is going to wrap to the next line                                               │
 ╰──────────────────────────────────────────────────────────────────────────────────╯
@@ -944,11 +976,11 @@ r"╭─────────────────────────
 
         let expected =
 r"|                            This is some centered text                            |
-+----------------------------------------+-----------------------------------------+
-| This is left aligned text              |              This is right aligned text |
-+----------------------------------------+-----------------------------------------+
-| This is left aligned text              |              This is right aligned text |
-+----------------------------------------+-----------------------------------------+
++-----------------------------------------+----------------------------------------+
+| This is left aligned text               |             This is right aligned text |
++-----------------------------------------+----------------------------------------+
+| This is left aligned text               |             This is right aligned text |
++-----------------------------------------+----------------------------------------+
 | This is some really really really really really really really really really that |
 |  is going to wrap to the next line                                               |
 +----------------------------------------------------------------------------------+
@@ -968,11 +1000,11 @@ r"|                            This is some centered text                       
         let expected = 
 r"+----------------------------------------------------------------------------------+
 |                            This is some centered text                            |
-+----------------------------------------+-----------------------------------------+
-| This is left aligned text              |              This is right aligned text |
-+----------------------------------------+-----------------------------------------+
-| This is left aligned text              |              This is right aligned text |
-+----------------------------------------+-----------------------------------------+
++-----------------------------------------+----------------------------------------+
+| This is left aligned text               |             This is right aligned text |
++-----------------------------------------+----------------------------------------+
+| This is left aligned text               |             This is right aligned text |
++-----------------------------------------+----------------------------------------+
 | This is some really really really really really really really really really that |
 |  is going to wrap to the next line                                               |
 ";
@@ -991,8 +1023,8 @@ r"+-----------------------------------------------------------------------------
         let expected = 
 r"+----------------------------------------------------------------------------------+
 |                            This is some centered text                            |
-| This is left aligned text              |              This is right aligned text |
-| This is left aligned text              |              This is right aligned text |
+| This is left aligned text               |             This is right aligned text |
+| This is left aligned text               |             This is right aligned text |
 | This is some really really really really really really really really really that |
 |  is going to wrap to the next line                                               |
 +----------------------------------------------------------------------------------+
@@ -1013,10 +1045,10 @@ r"+-----------------------------------------------------------------------------
         let expected = 
 r"+----------------------------------------------------------------------------------+
 |                            This is some centered text                            |
-+----------------------------------------+-----------------------------------------+
-| This is left aligned text              |              This is right aligned text |
-| This is left aligned text              |              This is right aligned text |
-+----------------------------------------+-----------------------------------------+
++-----------------------------------------+----------------------------------------+
+| This is left aligned text               |             This is right aligned text |
+| This is left aligned text               |             This is right aligned text |
++-----------------------------------------+----------------------------------------+
 | This is some really really really really really really really really really that |
 |  is going to wrap to the next line                                               |
 +----------------------------------------------------------------------------------+
