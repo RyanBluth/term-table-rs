@@ -465,7 +465,7 @@ impl<'data> Table<'data> {
         // aligned but the max_width doesn't allow for even padding on either side
         for row in &self.rows {
             let mut col_index = 0;
-            for cell in &row.cells {
+            for cell in row.cells.iter() {
                 let mut total_col_width = 0;
                 for i in col_index..col_index + cell.col_span {
                     total_col_width += max_widths[i];
@@ -475,7 +475,14 @@ impl<'data> Table<'data> {
                     && cell.alignment == Alignment::Center
                     && total_col_width as f32 % 2.0 <= 0.001
                 {
-                    max_widths[col_index] += 1;
+                    let mut max_col_width = self.max_column_width;
+                    if let Some(specific_width) = self.max_column_widths.get(&col_index){
+                        max_col_width = *specific_width;
+                    }
+
+                    if max_widths[col_index] < max_col_width {
+                        max_widths[col_index] += 1;
+                    }
                 }
                 if cell.col_span > 1{
                     col_index += cell.col_span - 1;
@@ -675,20 +682,79 @@ r"+----+---+
         add_data_to_test_table(&mut table);
 
         let expected = 
-r"+----------------------------------------------------------------------------------+
-|                            This is some centered text                            |
-+-----------------------------------------+----------------------------------------+
-| This is left aligned text               |             This is right aligned text |
-+-----------------------------------------+----------------------------------------+
-| This is left aligned text               |             This is right aligned text |
-+-----------------------------------------+----------------------------------------+
-| This is some really really really really really really really really really that |
-|  is going to wrap to the next line                                               |
-+----------------------------------------------------------------------------------+
+r"+---------------------------------------------------------------------------------+
+|                            This is some centered text                           |
++----------------------------------------+----------------------------------------+
+| This is left aligned text              |             This is right aligned text |
++----------------------------------------+----------------------------------------+
+| This is left aligned text              |             This is right aligned text |
++----------------------------------------+----------------------------------------+
+| This is some really really really really really really really really really tha |
+| t is going to wrap to the next line                                             |
++---------------------------------------------------------------------------------+
 ";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
     }
+
+    #[test]
+    fn uneven_with_varying_col_span() {
+        let mut table = Table::new();
+        table.separate_rows = true;
+        table.style = TableStyle::simple();
+        table.add_row(Row::new(vec![
+            TableCell::new_with_alignment("A1111111", 1, Alignment::Center),
+            TableCell::new_with_alignment("B", 1, Alignment::Center),
+        ]));
+        table.add_row(Row::new(vec![TableCell::new(1), TableCell::new("1")]));
+        table.add_row(Row::new(vec![TableCell::new(2), TableCell::new("10")]));
+        table.add_row(Row::new(vec![TableCell::new_with_alignment_and_padding(3, 1, Alignment::Left, false), TableCell::new("100")]));
+        table.add_row(Row::new(vec![TableCell::new_with_alignment("S", 2, Alignment::Center)]));
+        let expected = 
+"+----------+-----+
+| A1111111 |  B  |
++----------+-----+
+| 1        | 1   |
++----------+-----+
+| 2        | 10  |
++----------+-----+
+|\03\0         | 100 |
++----------+-----+
+|        S       |
++----------------+
+";
+        println!("{}", table.render());
+        assert_eq!(expected.trim(), table.render().trim());
+    }
+
+    // TODO - The output of this test isn't ideal. There is probably a better way to calculate the
+    // the column/row layout that would improve this
+    #[test]
+    fn uneven_with_varying_col_span_2() {
+        let mut table = Table::new();
+        table.separate_rows = false;
+        table.style = TableStyle::simple();
+        table.add_row(Row::new(vec![
+            TableCell::new_with_alignment("A", 1, Alignment::Center),
+            TableCell::new_with_alignment("B", 1, Alignment::Center),
+        ]));
+        table.add_row(Row::new(vec![TableCell::new(1), TableCell::new("1")]));
+        table.add_row(Row::new(vec![TableCell::new(2), TableCell::new("10")]));
+        table.add_row(Row::new(vec![TableCell::new(3), TableCell::new("100")]));
+        table.add_row(Row::new(vec![TableCell::new_with_alignment("Spanner", 2, Alignment::Center)]));
+        let expected = 
+"+------+-----+
+|   A  |  B  |
+| 1    | 1   |
+| 2    | 10  |
+| 3    | 100 |
+|   Spanner  |
++------------+
+";
+        println!("{}", table.render());
+        assert_eq!(expected.trim(), table.render().trim());
+    }
+
 
     #[test]
     fn extended_table_style_wrapped() {
@@ -720,89 +786,94 @@ r"+-----------------------------------------------------------------------------
         ]));
 
         let expected = 
-r"╔════════╗
-║ This i ║
-║ s some ║
-║  cente ║
-║ red te ║
-║   xt   ║
-╠════╦═══╣
-║ Th ║ T ║
-║ is ║ h ║
-║  i ║ i ║
-║ s  ║ s ║
-║ le ║   ║
-║ ft ║ i ║
-║  a ║ s ║
-║ li ║   ║
-║ gn ║ r ║
-║ ed ║ i ║
-║  t ║ g ║
-║ ex ║ h ║
-║ t  ║ t ║
-║    ║   ║
-║    ║ a ║
-║    ║ l ║
-║    ║ i ║
-║    ║ g ║
-║    ║ n ║
-║    ║ e ║
-║    ║ d ║
-║    ║   ║
-║    ║ t ║
-║    ║ e ║
-║    ║ x ║
-║    ║ t ║
-╠════╬═══╣
-║ Th ║ T ║
-║ is ║ h ║
-║  i ║ i ║
-║ s  ║ s ║
-║ le ║   ║
-║ ft ║ i ║
-║  a ║ s ║
-║ li ║   ║
-║ gn ║ r ║
-║ ed ║ i ║
-║  t ║ g ║
-║ ex ║ h ║
-║ t  ║ t ║
-║    ║   ║
-║    ║ a ║
-║    ║ l ║
-║    ║ i ║
-║    ║ g ║
-║    ║ n ║
-║    ║ e ║
-║    ║ d ║
-║    ║   ║
-║    ║ t ║
-║    ║ e ║
-║    ║ x ║
-║    ║ t ║
-╠════╩═══╣
-║ This i ║
-║ s some ║
-║  reall ║
-║ y real ║
-║ ly rea ║
-║ lly re ║
-║ ally r ║
-║ eally  ║
-║ really ║
-║  reall ║
-║ y real ║
-║ ly rea ║
-║ lly th ║
-║ at is  ║
-║ going  ║
-║ to wra ║
-║ p to t ║
-║ he nex ║
-║ t line ║
-║ 1      ║
-║ 2      ║
-╚════════╝
+r"╔═══════╗
+║ This  ║
+║ is so ║
+║ me ce ║
+║ ntere ║
+║ d tex ║
+║   t   ║
+╠═══╦═══╣
+║ T ║ T ║
+║ h ║ h ║
+║ i ║ i ║
+║ s ║ s ║
+║   ║   ║
+║ i ║ i ║
+║ s ║ s ║
+║   ║   ║
+║ l ║ r ║
+║ e ║ i ║
+║ f ║ g ║
+║ t ║ h ║
+║   ║ t ║
+║ a ║   ║
+║ l ║ a ║
+║ i ║ l ║
+║ g ║ i ║
+║ n ║ g ║
+║ e ║ n ║
+║ d ║ e ║
+║   ║ d ║
+║ t ║   ║
+║ e ║ t ║
+║ x ║ e ║
+║ t ║ x ║
+║   ║ t ║
+╠═══╬═══╣
+║ T ║ T ║
+║ h ║ h ║
+║ i ║ i ║
+║ s ║ s ║
+║   ║   ║
+║ i ║ i ║
+║ s ║ s ║
+║   ║   ║
+║ l ║ r ║
+║ e ║ i ║
+║ f ║ g ║
+║ t ║ h ║
+║   ║ t ║
+║ a ║   ║
+║ l ║ a ║
+║ i ║ l ║
+║ g ║ i ║
+║ n ║ g ║
+║ e ║ n ║
+║ d ║ e ║
+║   ║ d ║
+║ t ║   ║
+║ e ║ t ║
+║ x ║ e ║
+║ t ║ x ║
+║   ║ t ║
+╠═══╩═══╣
+║ This  ║
+║ is so ║
+║ me re ║
+║ ally  ║
+║ reall ║
+║ y rea ║
+║ lly r ║
+║ eally ║
+║  real ║
+║ ly re ║
+║ ally  ║
+║ reall ║
+║ y rea ║
+║ lly r ║
+║ eally ║
+║  that ║
+║  is g ║
+║ oing  ║
+║ to wr ║
+║ ap to ║
+║  the  ║
+║ next  ║
+║ line  ║
+║ 1     ║
+║ 2     ║
+╚═══════╝
 ";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
@@ -817,16 +888,16 @@ r"╔════════╗
         add_data_to_test_table(&mut table);
 
         let expected = 
-r"╔──────────────────────────────────────────────────────────────────────────────────╗
-│                            This is some centered text                            │
-╠─────────────────────────────────────────╦────────────────────────────────────────╣
-│ This is left aligned text               │             This is right aligned text │
-╠─────────────────────────────────────────┼────────────────────────────────────────╣
-│ This is left aligned text               │             This is right aligned text │
-╠─────────────────────────────────────────╩────────────────────────────────────────╣
-│ This is some really really really really really really really really really that │
-│  is going to wrap to the next line                                               │
-╚──────────────────────────────────────────────────────────────────────────────────╝
+r"╔─────────────────────────────────────────────────────────────────────────────────╗
+│                            This is some centered text                           │
+╠────────────────────────────────────────╦────────────────────────────────────────╣
+│ This is left aligned text              │             This is right aligned text │
+╠────────────────────────────────────────┼────────────────────────────────────────╣
+│ This is left aligned text              │             This is right aligned text │
+╠────────────────────────────────────────╩────────────────────────────────────────╣
+│ This is some really really really really really really really really really tha │
+│ t is going to wrap to the next line                                             │
+╚─────────────────────────────────────────────────────────────────────────────────╝
 ";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
@@ -840,16 +911,16 @@ r"╔─────────────────────────
         add_data_to_test_table(&mut table);
 
         let expected = 
-r"┌──────────────────────────────────────────────────────────────────────────────────┐
-│                            This is some centered text                            │
-├─────────────────────────────────────────┬────────────────────────────────────────┤
-│ This is left aligned text               │             This is right aligned text │
-├─────────────────────────────────────────┼────────────────────────────────────────┤
-│ This is left aligned text               │             This is right aligned text │
-├─────────────────────────────────────────┴────────────────────────────────────────┤
-│ This is some really really really really really really really really really that │
-│  is going to wrap to the next line                                               │
-└──────────────────────────────────────────────────────────────────────────────────┘
+r"┌─────────────────────────────────────────────────────────────────────────────────┐
+│                            This is some centered text                           │
+├────────────────────────────────────────┬────────────────────────────────────────┤
+│ This is left aligned text              │             This is right aligned text │
+├────────────────────────────────────────┼────────────────────────────────────────┤
+│ This is left aligned text              │             This is right aligned text │
+├────────────────────────────────────────┴────────────────────────────────────────┤
+│ This is some really really really really really really really really really tha │
+│ t is going to wrap to the next line                                             │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
@@ -864,16 +935,16 @@ r"┌─────────────────────────
         add_data_to_test_table(&mut table);
 
         let expected = 
-r"╭──────────────────────────────────────────────────────────────────────────────────╮
-│                            This is some centered text                            │
-├─────────────────────────────────────────┬────────────────────────────────────────┤
-│ This is left aligned text               │             This is right aligned text │
-├─────────────────────────────────────────┼────────────────────────────────────────┤
-│ This is left aligned text               │             This is right aligned text │
-├─────────────────────────────────────────┴────────────────────────────────────────┤
-│ This is some really really really really really really really really really that │
-│  is going to wrap to the next line                                               │
-╰──────────────────────────────────────────────────────────────────────────────────╯
+r"╭─────────────────────────────────────────────────────────────────────────────────╮
+│                            This is some centered text                           │
+├────────────────────────────────────────┬────────────────────────────────────────┤
+│ This is left aligned text              │             This is right aligned text │
+├────────────────────────────────────────┼────────────────────────────────────────┤
+│ This is left aligned text              │             This is right aligned text │
+├────────────────────────────────────────┴────────────────────────────────────────┤
+│ This is some really really really really really really really really really tha │
+│ t is going to wrap to the next line                                             │
+╰─────────────────────────────────────────────────────────────────────────────────╯
 ";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
@@ -975,15 +1046,15 @@ r"╭─────────────────────────
         add_data_to_test_table(&mut table);
 
         let expected =
-r"|                            This is some centered text                            |
-+-----------------------------------------+----------------------------------------+
-| This is left aligned text               |             This is right aligned text |
-+-----------------------------------------+----------------------------------------+
-| This is left aligned text               |             This is right aligned text |
-+-----------------------------------------+----------------------------------------+
-| This is some really really really really really really really really really that |
-|  is going to wrap to the next line                                               |
-+----------------------------------------------------------------------------------+
+r"|                            This is some centered text                           |
++----------------------------------------+----------------------------------------+
+| This is left aligned text              |             This is right aligned text |
++----------------------------------------+----------------------------------------+
+| This is left aligned text              |             This is right aligned text |
++----------------------------------------+----------------------------------------+
+| This is some really really really really really really really really really tha |
+| t is going to wrap to the next line                                             |
++---------------------------------------------------------------------------------+
 ";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
@@ -998,15 +1069,15 @@ r"|                            This is some centered text                       
         add_data_to_test_table(&mut table);
 
         let expected = 
-r"+----------------------------------------------------------------------------------+
-|                            This is some centered text                            |
-+-----------------------------------------+----------------------------------------+
-| This is left aligned text               |             This is right aligned text |
-+-----------------------------------------+----------------------------------------+
-| This is left aligned text               |             This is right aligned text |
-+-----------------------------------------+----------------------------------------+
-| This is some really really really really really really really really really that |
-|  is going to wrap to the next line                                               |
+r"+---------------------------------------------------------------------------------+
+|                            This is some centered text                           |
++----------------------------------------+----------------------------------------+
+| This is left aligned text              |             This is right aligned text |
++----------------------------------------+----------------------------------------+
+| This is left aligned text              |             This is right aligned text |
++----------------------------------------+----------------------------------------+
+| This is some really really really really really really really really really tha |
+| t is going to wrap to the next line                                             |
 ";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
@@ -1021,13 +1092,13 @@ r"+-----------------------------------------------------------------------------
         add_data_to_test_table(&mut table);
 
         let expected = 
-r"+----------------------------------------------------------------------------------+
-|                            This is some centered text                            |
-| This is left aligned text               |             This is right aligned text |
-| This is left aligned text               |             This is right aligned text |
-| This is some really really really really really really really really really that |
-|  is going to wrap to the next line                                               |
-+----------------------------------------------------------------------------------+
+r"+---------------------------------------------------------------------------------+
+|                            This is some centered text                           |
+| This is left aligned text              |             This is right aligned text |
+| This is left aligned text              |             This is right aligned text |
+| This is some really really really really really really really really really tha |
+| t is going to wrap to the next line                                             |
++---------------------------------------------------------------------------------+
 ";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
@@ -1043,15 +1114,15 @@ r"+-----------------------------------------------------------------------------
         table.rows[2].has_separator = false;
 
         let expected = 
-r"+----------------------------------------------------------------------------------+
-|                            This is some centered text                            |
-+-----------------------------------------+----------------------------------------+
-| This is left aligned text               |             This is right aligned text |
-| This is left aligned text               |             This is right aligned text |
-+-----------------------------------------+----------------------------------------+
-| This is some really really really really really really really really really that |
-|  is going to wrap to the next line                                               |
-+----------------------------------------------------------------------------------+
+r"+---------------------------------------------------------------------------------+
+|                            This is some centered text                           |
++----------------------------------------+----------------------------------------+
+| This is left aligned text              |             This is right aligned text |
+| This is left aligned text              |             This is right aligned text |
++----------------------------------------+----------------------------------------+
+| This is some really really really really really really really really really tha |
+| t is going to wrap to the next line                                             |
++---------------------------------------------------------------------------------+
 ";
         println!("{}", table.render());
         assert_eq!(expected, table.render());
