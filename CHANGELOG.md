@@ -1,3 +1,6 @@
+# 1.3.0
+Improved layout of tables in a number of different scenarios.
+
 # 1.2.1 
 Derived Clone and Debug for all types
 Added TableBuilder to help with constructing non-mutable tables
