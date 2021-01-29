@@ -470,6 +470,7 @@ impl<'data> Table<'data> {
                 for i in col_index..col_index + cell.col_span {
                     total_col_width += max_widths[i];
                 }
+                
                 if cell.width() != total_col_width
                     && cell.alignment == Alignment::Center
                     && total_col_width as f32 % 2.0 <= 0.001
@@ -1130,7 +1131,7 @@ r"+-----------------------------------------------------------------------------
     #[test]
     fn colored_data_works() {
         let mut table = Table::new();
-        table.add_row(Row::new(vec![TableCell::new("\x1b[31ma\x1b[0m")]));
+        table.add_row(Row::new(vec![TableCell::new("\u{1b}[31ma\u{1b}[0m")]));
         let expected = "╔═══╗
 ║ \u{1b}[31ma\u{1b}[0m ║
 ╚═══╝
