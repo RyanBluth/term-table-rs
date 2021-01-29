@@ -2,6 +2,7 @@ use lazy_static;
 use regex::Regex;
 use std::borrow::Cow;
 use std::cmp;
+use std::collections::HashSet;
 
 use unicode_width::UnicodeWidthChar;
 use unicode_width::UnicodeWidthStr;
@@ -119,22 +120,29 @@ impl<'data> TableCell<'data> {
     /// New line characters are taken into account.
     pub fn wrapped_content(&self, width: usize) -> Vec<String> {
         let pad_char = if self.pad_content { ' ' } else { '\0' };
+        let hidden: HashSet<usize> = STRIP_ANSI_RE
+            .find_iter(&self.data)
+            .flat_map(|m| m.start()..m.end())
+            .collect();
         let mut res: Vec<String> = Vec::new();
         let mut buf = String::new();
         buf.push(pad_char);
-        for c in self.data.chars().enumerate() {
-            if string_width(&buf) as usize >= width - pad_char.width().unwrap_or(1) as usize
-                || c.1 == '\n'
+        let mut byte_index = 0;
+        for c in self.data.chars() {
+            if !hidden.contains(&byte_index)
+                && (string_width(&buf) >= width - pad_char.width().unwrap_or(1) || c == '\n')
             {
                 buf.push(pad_char);
                 res.push(buf);
                 buf = String::new();
                 buf.push(pad_char);
-                if c.1 == '\n' {
+                if c == '\n' {
+                    byte_index += 1;
                     continue;
                 }
             }
-            buf.push(c.1);
+            byte_index += c.len_utf8();
+            buf.push(c);
         }
         buf.push(pad_char);
         res.push(buf);

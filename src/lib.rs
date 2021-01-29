@@ -1128,6 +1128,18 @@ r"+-----------------------------------------------------------------------------
         assert_eq!(expected, table.render());
     }
 
+    #[test]
+    fn colored_data_works() {
+        let mut table = Table::new();
+        table.add_row(Row::new(vec![TableCell::new("\u{1b}[31ma\u{1b}[0m")]));
+        let expected = "╔═══╗
+║ \u{1b}[31ma\u{1b}[0m ║
+╚═══╝
+";
+        println!("{}", table.render());
+        assert_eq!(expected, table.render());
+    }
+
     fn add_data_to_test_table(table: &mut Table) {
         table.max_column_width = 40;
         table.add_row(Row::new(vec![TableCell::new_with_alignment(
