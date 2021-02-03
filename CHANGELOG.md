@@ -1,3 +1,5 @@
+# 1.3.1
+Fixes issue with ansi colors #6 
 # 1.3.0
 Improved layout of tables in a number of different scenarios.
 
