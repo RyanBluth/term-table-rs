@@ -275,6 +275,37 @@ impl TableStyle {
         }
     }
 
+    /// Table style comprised of empty characters for compatibility with terminals
+    /// that don't handle null characters appropriately
+    ///
+    ///# Example
+    ///
+    ///<pre>
+    ///                           This is some centered text
+    ///
+    /// This is left aligned text                           This is right aligned text
+    ///
+    /// This is left aligned text                           This is right aligned text
+    ///
+    /// This is some really really really really really really really really really tha
+    /// t is going to wrap to the next line
+    ///</pre>
+    pub fn empty() -> TableStyle {
+        TableStyle {
+            top_left_corner: ' ',
+            top_right_corner: ' ',
+            bottom_left_corner: ' ',
+            bottom_right_corner: ' ',
+            outer_left_vertical: ' ',
+            outer_right_vertical: ' ',
+            outer_bottom_horizontal: ' ',
+            outer_top_horizontal: ' ',
+            intersection: ' ',
+            vertical: ' ',
+            horizontal: ' ',
+        }
+    }
+
     /// Returns the start character of a table style based on the
     /// vertical position of the row
     fn start_for_position(&self, pos: RowPosition) -> char {
@@ -470,13 +501,12 @@ impl<'data> Table<'data> {
                 for i in col_index..col_index + cell.col_span {
                     total_col_width += max_widths[i];
                 }
-                
                 if cell.width() != total_col_width
                     && cell.alignment == Alignment::Center
                     && total_col_width as f32 % 2.0 <= 0.001
                 {
                     let mut max_col_width = self.max_column_width;
-                    if let Some(specific_width) = self.max_column_widths.get(&col_index){
+                    if let Some(specific_width) = self.max_column_widths.get(&col_index) {
                         max_col_width = *specific_width;
                     }
 
@@ -484,9 +514,9 @@ impl<'data> Table<'data> {
                         max_widths[col_index] += 1;
                     }
                 }
-                if cell.col_span > 1{
+                if cell.col_span > 1 {
                     col_index += cell.col_span - 1;
-                }else{
+                } else {
                     col_index += 1;
                 }
             }
@@ -607,7 +637,7 @@ mod test {
     use crate::Table;
     use crate::TableBuilder;
     use crate::TableStyle;
-    use pretty_assertions::{assert_eq};
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn correct_default_padding() {
@@ -666,8 +696,7 @@ mod test {
             TableCell::new_with_alignment("B", 1, Alignment::Center),
         ]));
         println!("{}", table.render());
-        let expected = 
-r"+----+---+
+        let expected = r"+----+---+
 | A1 | B |
 +----+---+
 ";
@@ -681,8 +710,7 @@ r"+----+---+
 
         add_data_to_test_table(&mut table);
 
-        let expected = 
-r"+---------------------------------------------------------------------------------+
+        let expected = r"+---------------------------------------------------------------------------------+
 |                            This is some centered text                           |
 +----------------------------------------+----------------------------------------+
 | This is left aligned text              |             This is right aligned text |
@@ -708,10 +736,16 @@ r"+-----------------------------------------------------------------------------
         ]));
         table.add_row(Row::new(vec![TableCell::new(1), TableCell::new("1")]));
         table.add_row(Row::new(vec![TableCell::new(2), TableCell::new("10")]));
-        table.add_row(Row::new(vec![TableCell::new_with_alignment_and_padding(3, 1, Alignment::Left, false), TableCell::new("100")]));
-        table.add_row(Row::new(vec![TableCell::new_with_alignment("S", 2, Alignment::Center)]));
-        let expected = 
-"+----------+-----+
+        table.add_row(Row::new(vec![
+            TableCell::new_with_alignment_and_padding(3, 1, Alignment::Left, false),
+            TableCell::new("100"),
+        ]));
+        table.add_row(Row::new(vec![TableCell::new_with_alignment(
+            "S",
+            2,
+            Alignment::Center,
+        )]));
+        let expected = "+----------+-----+
 | A1111111 |  B  |
 +----------+-----+
 | 1        | 1   |
@@ -741,9 +775,12 @@ r"+-----------------------------------------------------------------------------
         table.add_row(Row::new(vec![TableCell::new(1), TableCell::new("1")]));
         table.add_row(Row::new(vec![TableCell::new(2), TableCell::new("10")]));
         table.add_row(Row::new(vec![TableCell::new(3), TableCell::new("100")]));
-        table.add_row(Row::new(vec![TableCell::new_with_alignment("Spanner", 2, Alignment::Center)]));
-        let expected = 
-"+------+-----+
+        table.add_row(Row::new(vec![TableCell::new_with_alignment(
+            "Spanner",
+            2,
+            Alignment::Center,
+        )]));
+        let expected = "+------+-----+
 |   A  |  B  |
 | 1    | 1   |
 | 2    | 10  |
@@ -754,7 +791,6 @@ r"+-----------------------------------------------------------------------------
         println!("{}", table.render());
         assert_eq!(expected.trim(), table.render().trim());
     }
-
 
     #[test]
     fn extended_table_style_wrapped() {
@@ -785,8 +821,7 @@ r"+-----------------------------------------------------------------------------
             TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line\n1\n2", 2),
         ]));
 
-        let expected = 
-r"╔═══════╗
+        let expected = r"╔═══════╗
 ║ This  ║
 ║ is so ║
 ║ me ce ║
@@ -879,7 +914,6 @@ r"╔═══════╗
         assert_eq!(expected, table.render());
     }
 
-    
     #[test]
     fn elegant_table_style() {
         let mut table = Table::new();
@@ -887,8 +921,7 @@ r"╔═══════╗
 
         add_data_to_test_table(&mut table);
 
-        let expected = 
-r"╔─────────────────────────────────────────────────────────────────────────────────╗
+        let expected = r"╔─────────────────────────────────────────────────────────────────────────────────╗
 │                            This is some centered text                           │
 ╠────────────────────────────────────────╦────────────────────────────────────────╣
 │ This is left aligned text              │             This is right aligned text │
@@ -910,8 +943,7 @@ r"╔─────────────────────────
 
         add_data_to_test_table(&mut table);
 
-        let expected = 
-r"┌─────────────────────────────────────────────────────────────────────────────────┐
+        let expected = r"┌─────────────────────────────────────────────────────────────────────────────────┐
 │                            This is some centered text                           │
 ├────────────────────────────────────────┬────────────────────────────────────────┤
 │ This is left aligned text              │             This is right aligned text │
@@ -934,8 +966,7 @@ r"┌─────────────────────────
 
         add_data_to_test_table(&mut table);
 
-        let expected = 
-r"╭─────────────────────────────────────────────────────────────────────────────────╮
+        let expected = r"╭─────────────────────────────────────────────────────────────────────────────────╮
 │                            This is some centered text                           │
 ├────────────────────────────────────────┬────────────────────────────────────────┤
 │ This is left aligned text              │             This is right aligned text │
@@ -1045,8 +1076,7 @@ r"╭─────────────────────────
 
         add_data_to_test_table(&mut table);
 
-        let expected =
-r"|                            This is some centered text                           |
+        let expected = r"|                            This is some centered text                           |
 +----------------------------------------+----------------------------------------+
 | This is left aligned text              |             This is right aligned text |
 +----------------------------------------+----------------------------------------+
@@ -1068,8 +1098,7 @@ r"|                            This is some centered text                       
 
         add_data_to_test_table(&mut table);
 
-        let expected = 
-r"+---------------------------------------------------------------------------------+
+        let expected = r"+---------------------------------------------------------------------------------+
 |                            This is some centered text                           |
 +----------------------------------------+----------------------------------------+
 | This is left aligned text              |             This is right aligned text |
@@ -1091,8 +1120,7 @@ r"+-----------------------------------------------------------------------------
 
         add_data_to_test_table(&mut table);
 
-        let expected = 
-r"+---------------------------------------------------------------------------------+
+        let expected = r"+---------------------------------------------------------------------------------+
 |                            This is some centered text                           |
 | This is left aligned text              |             This is right aligned text |
 | This is left aligned text              |             This is right aligned text |
@@ -1113,8 +1141,7 @@ r"+-----------------------------------------------------------------------------
 
         table.rows[2].has_separator = false;
 
-        let expected = 
-r"+---------------------------------------------------------------------------------+
+        let expected = r"+---------------------------------------------------------------------------------+
 |                            This is some centered text                           |
 +----------------------------------------+----------------------------------------+
 | This is left aligned text              |             This is right aligned text |
