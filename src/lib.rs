@@ -1167,6 +1167,39 @@ mod test {
         assert_eq!(expected, table.render());
     }
 
+    #[test]
+    fn works_with_different_new_line_chars() {
+        let mut table = Table::new();
+        let input = "Hello there!\r\n\r\nHere is a longer paragraph:\r\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\r\n\r\nIf you have any suggestions, please feel free to open an issue.\r\n\r\nBye 👋 ";
+        table.add_row(Row::new(vec![TableCell::new(input)]));
+        table.max_column_width(40);
+        let expected = "╔════════════════════════════════════════╗
+║ Hello there!                           ║
+║                                        ║
+║ Here is a longer paragraph:            ║
+║ Lorem ipsum dolor sit amet, consectetu ║
+║ r adipiscing elit, sed do eiusmod temp ║
+║ or incididunt ut labore et dolore magn ║
+║ a aliqua. Ut enim ad minim veniam, qui ║
+║ s nostrud exercitation ullamco laboris ║
+║  nisi ut aliquip ex ea commodo consequ ║
+║ at. Duis aute irure dolor in reprehend ║
+║ erit in voluptate velit esse cillum do ║
+║ lore eu fugiat nulla pariatur. Excepte ║
+║ ur sint occaecat cupidatat non proiden ║
+║ t, sunt in culpa qui officia deserunt  ║
+║ mollit anim id est laborum.            ║
+║                                        ║
+║ If you have any suggestions, please fe ║
+║ el free to open an issue.              ║
+║                                        ║
+║ Bye 👋                                 ║
+╚════════════════════════════════════════╝
+";
+        println!("{}", table.render());
+        assert_eq!(expected, table.render());
+    }
+
     fn add_data_to_test_table(table: &mut Table) {
         table.max_column_width = 40;
         table.add_row(Row::new(vec![TableCell::new_with_alignment(
