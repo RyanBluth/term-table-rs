@@ -34,7 +34,7 @@ impl<'data> TableCell<'data> {
         T: ToString,
     {
         Self {
-            data: data.to_string().into(),
+            data: cleanup_newline_chars(data.to_string()).into(),
             col_span: 1,
             alignment: Alignment::Left,
             pad_content: true,
@@ -46,7 +46,7 @@ impl<'data> TableCell<'data> {
         T: ToString,
     {
         Self {
-            data: data.to_string().into(),
+            data: cleanup_newline_chars(data.to_string()).into(),
             alignment: Alignment::Left,
             pad_content: true,
             col_span,
@@ -58,7 +58,7 @@ impl<'data> TableCell<'data> {
         T: ToString,
     {
         Self {
-            data: data.to_string().into(),
+            data: cleanup_newline_chars(data.to_string()).into(),
             pad_content: true,
             col_span,
             alignment,
@@ -75,7 +75,7 @@ impl<'data> TableCell<'data> {
         T: ToString,
     {
         Self {
-            data: data.to_string().into(),
+            data: cleanup_newline_chars(data.to_string()).into(),
             col_span,
             alignment,
             pad_content,
@@ -171,4 +171,8 @@ lazy_static! {
 pub fn string_width(string: &str) -> usize {
     let stripped = STRIP_ANSI_RE.replace_all(string, "");
     stripped.width()
+}
+
+fn cleanup_newline_chars(input: String) -> String {
+    input.replace("\r\n", "\n").replace('\r', "\n")
 }
