@@ -1,6 +1,5 @@
 use lazy_static;
 use regex::Regex;
-use std::borrow::Cow;
 use std::cmp;
 use std::collections::HashSet;
 
@@ -21,61 +20,71 @@ pub enum Alignment {
 ///
 ///`pad_content` will add a space to either side of the cell's content.AsRef
 #[derive(Debug, Clone)]
-pub struct TableCell<'data> {
-    pub data: Cow<'data, str>,
+pub struct TableCell {
+    pub data: String,
     pub col_span: usize,
     pub alignment: Alignment,
     pub pad_content: bool,
 }
 
-impl<'data> TableCell<'data> {
-    pub fn new<T>(data: T) -> TableCell<'data>
+impl TableCell {
+    pub fn new<T>(data: T) -> TableCell
     where
         T: ToString,
     {
         Self {
-            data: data.to_string().into(),
+            data: data.to_string(),
             col_span: 1,
             alignment: Alignment::Left,
             pad_content: true,
         }
     }
 
-    pub fn new_with_col_span<T>(data: T, col_span: usize) -> TableCell<'data>
+    pub fn builder<T>(data: T) -> TableCellBuilder
+    where
+        T: ToString,
+    {
+        TableCellBuilder::new(data.to_string())
+    }
+
+    #[deprecated(since = "1.4.0", note = "Use builder instead")]
+    pub fn new_with_col_span<T>(data: T, col_span: usize) -> TableCell
     where
         T: ToString,
     {
         Self {
-            data: data.to_string().into(),
+            data: data.to_string(),
             alignment: Alignment::Left,
             pad_content: true,
             col_span,
         }
     }
 
-    pub fn new_with_alignment<T>(data: T, col_span: usize, alignment: Alignment) -> TableCell<'data>
+    #[deprecated(since = "1.4.0", note = "Use builder instead")]
+    pub fn new_with_alignment<T>(data: T, col_span: usize, alignment: Alignment) -> TableCell
     where
         T: ToString,
     {
         Self {
-            data: data.to_string().into(),
+            data: data.to_string(),
             pad_content: true,
             col_span,
             alignment,
         }
     }
 
+    #[deprecated(since = "1.4.0", note = "Use builder instead")]
     pub fn new_with_alignment_and_padding<T>(
         data: T,
         col_span: usize,
         alignment: Alignment,
         pad_content: bool,
-    ) -> TableCell<'data>
+    ) -> TableCell
     where
         T: ToString,
     {
         Self {
-            data: data.to_string().into(),
+            data: data.to_string(),
             col_span,
             alignment,
             pad_content,
@@ -151,12 +160,66 @@ impl<'data> TableCell<'data> {
     }
 }
 
-impl<'data, T> From<T> for TableCell<'data>
+impl<T> From<T> for TableCell
 where
     T: ToString,
 {
     fn from(other: T) -> Self {
         TableCell::new(other)
+    }
+}
+
+pub struct TableCellBuilder {
+    data: String,
+    col_span: usize,
+    alignment: Alignment,
+    pad_content: bool,
+}
+
+impl Into<TableCell> for TableCellBuilder {
+    fn into(self) -> TableCell {
+        self.build()
+    }
+}
+
+impl Into<TableCell> for &mut TableCellBuilder {
+    fn into(self) -> TableCell {
+        self.build()
+    }
+}
+
+impl TableCellBuilder {
+    fn new(data: String) -> TableCellBuilder {
+        TableCellBuilder {
+            data,
+            col_span: 1,
+            alignment: Alignment::Left,
+            pad_content: true,
+        }
+    }
+
+    pub fn col_span(&mut self, col_span: usize) -> &mut Self {
+        self.col_span = col_span;
+        self
+    }
+
+    pub fn alignment(&mut self, alignment: Alignment) -> &mut Self {
+        self.alignment = alignment;
+        self
+    }
+
+    pub fn pad_content(&mut self, pad_content: bool) -> &mut Self {
+        self.pad_content = pad_content;
+        self
+    }
+
+    pub fn build(&self) -> TableCell {
+        TableCell {
+            data: self.data.clone(),
+            col_span: self.col_span,
+            alignment: self.alignment,
+            pad_content: self.pad_content,
+        }
     }
 }
 

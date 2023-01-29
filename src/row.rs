@@ -3,18 +3,19 @@ use crate::{RowPosition, TableStyle};
 use std::cmp::max;
 use unicode_width::UnicodeWidthChar;
 
+
 /// A set of table cells
 #[derive(Debug, Clone)]
-pub struct Row<'data> {
-    pub cells: Vec<TableCell<'data>>,
+pub struct Row {
+    pub cells: Vec<TableCell>,
     /// Whether the row should have a top boarder or not
     pub has_separator: bool,
 }
 
-impl<'data> Row<'data> {
-    pub fn new<I, T>(cells: I) -> Row<'data>
+impl Row {
+    pub fn new<I, T>(cells: I) -> Row
     where
-        T: Into<TableCell<'data>>,
+        T: Into<TableCell>,
         I: IntoIterator<Item = T>,
     {
         let mut row = Row {

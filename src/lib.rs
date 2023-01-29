@@ -47,11 +47,27 @@ extern crate lazy_static;
 pub mod row;
 pub mod table_cell;
 
+use table_cell::TableCellBuilder;
+
 use crate::row::Row;
 use crate::table_cell::Alignment;
 
 use std::cmp::{max, min};
 use std::collections::HashMap;
+
+macro_rules! row {
+    [ $($x:expr),* ] => {
+        Row::new(vec![$(Into::<TableCell>::into($x)),*])
+    };
+    [ $($x:expr,)* ] => (row![$($x),*])
+}
+
+macro_rules! rows {
+    [ $($x:expr),* ] => {
+        vec![$($x),*]
+    };
+    [ $($x:expr,)* ] => (rows![$($x),*])
+}
 
 /// Represents the vertical position of a row
 #[derive(Eq, PartialEq, Copy, Clone)]
@@ -357,8 +373,8 @@ impl TableStyle {
 
 /// A set of rows containing data
 #[derive(Clone, Debug)]
-pub struct Table<'data> {
-    pub rows: Vec<Row<'data>>,
+pub struct Table {
+    pub rows: Vec<Row>,
     pub style: TableStyle,
     /// The maximum width of all columns. Overridden by values in column_widths. Defaults to `std::usize::max`
     pub max_column_width: usize,
@@ -373,8 +389,8 @@ pub struct Table<'data> {
     pub has_bottom_boarder: bool,
 }
 
-impl<'data> Table<'data> {
-    pub fn new() -> Table<'data> {
+impl Table {
+    pub fn new() -> Table {
         Self {
             rows: Vec::new(),
             style: TableStyle::extended(),
@@ -386,7 +402,12 @@ impl<'data> Table<'data> {
         }
     }
 
-    pub fn with_rows(rows: Vec<Row<'data>>) -> Table<'data> {
+    pub fn builder() -> TableBuilder {
+        TableBuilder::new()
+    }
+
+    #[deprecated(since = "1.4.0", note = "Use builder instead")]
+    pub fn with_rows(rows: Vec<Row>) -> Table {
         Self {
             rows,
             style: TableStyle::extended(),
@@ -416,7 +437,7 @@ impl<'data> Table<'data> {
     }
 
     /// Simply adds a row to the rows Vec
-    pub fn add_row(&mut self, row: Row<'data>) {
+    pub fn add_row(&mut self, row: Row) {
         self.rows.push(row);
     }
 
@@ -531,13 +552,13 @@ impl<'data> Table<'data> {
     }
 }
 
-impl<'data> Default for Table<'data> {
+impl Default for Table {
     fn default() -> Self {
         return Table::new();
     }
 }
 
-impl<'data> ToString for Table<'data> {
+impl ToString for Table {
     fn to_string(&self) -> String {
         return self.render();
     }
@@ -545,8 +566,8 @@ impl<'data> ToString for Table<'data> {
 
 /// Used to create non-mutable tables
 #[derive(Clone, Debug)]
-pub struct TableBuilder<'data> {
-    rows: Vec<Row<'data>>,
+pub struct TableBuilder {
+    rows: Vec<Row>,
     style: TableStyle,
     max_column_width: usize,
     max_column_widths: HashMap<usize, usize>,
@@ -555,8 +576,8 @@ pub struct TableBuilder<'data> {
     has_bottom_boarder: bool,
 }
 
-impl<'data> TableBuilder<'data> {
-    pub fn new() -> TableBuilder<'data> {
+impl TableBuilder {
+    pub fn new() -> TableBuilder {
         TableBuilder {
             rows: Vec::new(),
             style: TableStyle::extended(),
@@ -568,7 +589,7 @@ impl<'data> TableBuilder<'data> {
         }
     }
 
-    pub fn rows(&mut self, rows: Vec<Row<'data>>) -> &mut Self {
+    pub fn rows(&mut self, rows: Vec<Row>) -> &mut Self {
         self.rows = rows;
         self
     }
@@ -610,7 +631,7 @@ impl<'data> TableBuilder<'data> {
     }
 
     /// Build a Table using the current configuration
-    pub fn build(&self) -> Table<'data> {
+    pub fn build(&self) -> Table {
         Table {
             rows: self.rows.clone(),
             style: self.style,
@@ -623,7 +644,7 @@ impl<'data> TableBuilder<'data> {
     }
 }
 
-impl<'data> Default for TableBuilder<'data> {
+impl Default for TableBuilder {
     fn default() -> Self {
         Self::new()
     }
@@ -631,7 +652,6 @@ impl<'data> Default for TableBuilder<'data> {
 
 #[cfg(test)]
 mod test {
-
     use crate::row::Row;
     use crate::table_cell::{Alignment, TableCell};
     use crate::Table;
@@ -641,16 +661,20 @@ mod test {
 
     #[test]
     fn correct_default_padding() {
-        let mut table = Table::new();
-        table.separate_rows = false;
-        table.style = TableStyle::simple();
-        table.add_row(Row::new(vec![
-            TableCell::new_with_alignment("A", 1, Alignment::Center),
-            TableCell::new_with_alignment("B", 1, Alignment::Center),
-        ]));
-        table.add_row(Row::new(vec![TableCell::new(1), TableCell::new("1")]));
-        table.add_row(Row::new(vec![TableCell::new(2), TableCell::new("10")]));
-        table.add_row(Row::new(vec![TableCell::new(3), TableCell::new("100")]));
+        let table = Table::builder()
+            .separate_rows(false)
+            .style(TableStyle::simple())
+            .rows(rows![
+                row![
+                    TableCell::builder("A").alignment(Alignment::Center),
+                    TableCell::builder("B").alignment(Alignment::Center),
+                ],
+                row![TableCell::builder("1"), TableCell::builder(1),],
+                row![TableCell::builder("2"), TableCell::builder(10),],
+                row![TableCell::builder("3"), TableCell::builder(100),],
+            ])
+            .build();
+
         let expected = r"+---+-----+
 | A |  B  |
 | 1 | 1   |
@@ -664,17 +688,17 @@ mod test {
 
     #[test]
     fn uneven_center_alignment() {
-        let mut table = Table::new();
-        table.separate_rows = false;
-        table.style = TableStyle::simple();
-        table.add_row(Row::new(vec![TableCell::new_with_alignment(
-            "A",
-            1,
-            Alignment::Center,
-        )]));
-        table.add_row(Row::new(vec![TableCell::new(11)]));
-        table.add_row(Row::new(vec![TableCell::new(2)]));
-        table.add_row(Row::new(vec![TableCell::new(3)]));
+        let table = Table::builder()
+            .separate_rows(false)
+            .style(TableStyle::simple())
+            .rows(rows![
+                row![TableCell::builder("A").alignment(Alignment::Center),],
+                row![TableCell::builder(11),],
+                row![TableCell::builder(2),],
+                row![TableCell::builder(3),],
+            ])
+            .build();
+
         let expected = r"+-----+
 |  A  |
 | 11  |
@@ -688,13 +712,14 @@ mod test {
 
     #[test]
     fn uneven_center_alignment_2() {
-        let mut table = Table::new();
-        table.separate_rows = false;
-        table.style = TableStyle::simple();
-        table.add_row(Row::new(vec![
-            TableCell::new_with_alignment("A1", 1, Alignment::Center),
-            TableCell::new_with_alignment("B", 1, Alignment::Center),
-        ]));
+        let table = Table::builder()
+            .separate_rows(false)
+            .style(TableStyle::simple())
+            .rows(rows![row![
+                TableCell::builder("A1").alignment(Alignment::Center),
+                TableCell::builder("B").alignment(Alignment::Center),
+            ],])
+            .build();
         println!("{}", table.render());
         let expected = r"+----+---+
 | A1 | B |
@@ -706,9 +731,9 @@ mod test {
 
     #[test]
     fn simple_table_style() {
-        let mut table = TableBuilder::new().style(TableStyle::simple()).build();
-
-        add_data_to_test_table(&mut table);
+        let mut builder = TableBuilder::new().style(TableStyle::simple()).to_owned();
+        add_data_to_test_table(&mut builder);
+        let table = builder.build();
 
         let expected = r"+---------------------------------------------------------------------------------+
 |                            This is some centered text                           |
@@ -727,24 +752,28 @@ mod test {
 
     #[test]
     fn uneven_with_varying_col_span() {
-        let mut table = Table::new();
-        table.separate_rows = true;
-        table.style = TableStyle::simple();
-        table.add_row(Row::new(vec![
-            TableCell::new_with_alignment("A1111111", 1, Alignment::Center),
-            TableCell::new_with_alignment("B", 1, Alignment::Center),
-        ]));
-        table.add_row(Row::new(vec![TableCell::new(1), TableCell::new("1")]));
-        table.add_row(Row::new(vec![TableCell::new(2), TableCell::new("10")]));
-        table.add_row(Row::new(vec![
-            TableCell::new_with_alignment_and_padding(3, 1, Alignment::Left, false),
-            TableCell::new("100"),
-        ]));
-        table.add_row(Row::new(vec![TableCell::new_with_alignment(
-            "S",
-            2,
-            Alignment::Center,
-        )]));
+        let table = Table::builder()
+            .separate_rows(true)
+            .style(TableStyle::simple())
+            .rows(rows![
+                row![
+                    TableCell::builder("A1111111").alignment(Alignment::Center),
+                    TableCell::builder("B").alignment(Alignment::Center),
+                ],
+                row![1, "1"],
+                row![2, "10"],
+                row![
+                    TableCell::builder(3)
+                        .alignment(Alignment::Left)
+                        .pad_content(false),
+                    "100",
+                ],
+                row![TableCell::builder("S")
+                    .alignment(Alignment::Center)
+                    .col_span(2),],
+            ])
+            .build();
+
         let expected = "+----------+-----+
 | A1111111 |  B  |
 +----------+-----+
@@ -765,21 +794,23 @@ mod test {
     // the column/row layout that would improve this
     #[test]
     fn uneven_with_varying_col_span_2() {
-        let mut table = Table::new();
-        table.separate_rows = false;
-        table.style = TableStyle::simple();
-        table.add_row(Row::new(vec![
-            TableCell::new_with_alignment("A", 1, Alignment::Center),
-            TableCell::new_with_alignment("B", 1, Alignment::Center),
-        ]));
-        table.add_row(Row::new(vec![TableCell::new(1), TableCell::new("1")]));
-        table.add_row(Row::new(vec![TableCell::new(2), TableCell::new("10")]));
-        table.add_row(Row::new(vec![TableCell::new(3), TableCell::new("100")]));
-        table.add_row(Row::new(vec![TableCell::new_with_alignment(
-            "Spanner",
-            2,
-            Alignment::Center,
-        )]));
+        let table = Table::builder()
+            .separate_rows(false)
+            .style(TableStyle::simple())
+            .rows(rows![
+                row![
+                    TableCell::builder("A").alignment(Alignment::Center),
+                    TableCell::builder("B").alignment(Alignment::Center),
+                ],
+                row![TableCell::builder(1), TableCell::builder(1),],
+                row![TableCell::builder(2), TableCell::builder(10),],
+                row![TableCell::builder(3), TableCell::builder(100),],
+                row![TableCell::builder("Spanner")
+                    .col_span(2)
+                    .alignment(Alignment::Center),],
+            ])
+            .build();
+
         let expected = "+------+-----+
 |   A  |  B  |
 | 1    | 1   |
@@ -794,32 +825,27 @@ mod test {
 
     #[test]
     fn extended_table_style_wrapped() {
-        let mut table = Table::new();
-        table.max_column_width = 40;
-
-        table.set_max_column_widths(vec![(0, 1), (1, 1)]);
-
-        table.style = TableStyle::extended();
-
-        table.add_row(Row::new(vec![TableCell::new_with_alignment(
-            "This is some centered text",
-            2,
-            Alignment::Center,
-        )]));
-
-        table.add_row(Row::new(vec![
-            TableCell::new("This is left aligned text"),
-            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
-        ]));
-
-        table.add_row(Row::new(vec![
-            TableCell::new("This is left aligned text"),
-            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
-        ]));
-
-        table.add_row(Row::new(vec![
-            TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line\n1\n2", 2),
-        ]));
+        let table = Table::builder()
+            .max_column_width(40)
+            .style(TableStyle::extended())
+            .max_column_widths(vec![(0, 1), (1, 1)].into_iter().collect())
+            .rows(rows![
+                row![
+                    TableCell::builder("This is some centered text").alignment(Alignment::Center).col_span(2),
+                ],
+                row![
+                    TableCell::builder("This is left aligned text"),
+                    TableCell::builder("This is right aligned text").alignment(Alignment::Right),
+                ],
+                row![
+                    TableCell::builder("This is left aligned text"),
+                    TableCell::builder("This is right aligned text").alignment(Alignment::Right),
+                ],
+                row![
+                    TableCell::builder("This is some really really really really really really really really really that is going to wrap to the next line\n1\n2").col_span(2),
+                ],
+            ])
+            .build();
 
         let expected = r"╔═══════╗
 ║ This  ║
@@ -916,10 +942,9 @@ mod test {
 
     #[test]
     fn elegant_table_style() {
-        let mut table = Table::new();
-        table.style = TableStyle::elegant();
-
-        add_data_to_test_table(&mut table);
+        let mut builder = Table::builder().style(TableStyle::elegant()).to_owned();
+        add_data_to_test_table(&mut builder);
+        let table = builder.build();
 
         let expected = r"╔─────────────────────────────────────────────────────────────────────────────────╗
 │                            This is some centered text                           │
@@ -938,10 +963,9 @@ mod test {
 
     #[test]
     fn thin_table_style() {
-        let mut table = Table::new();
-        table.style = TableStyle::thin();
-
-        add_data_to_test_table(&mut table);
+        let mut builder = Table::builder().style(TableStyle::thin()).to_owned();
+        add_data_to_test_table(&mut builder);
+        let table = builder.build();
 
         let expected = r"┌─────────────────────────────────────────────────────────────────────────────────┐
 │                            This is some centered text                           │
@@ -960,11 +984,9 @@ mod test {
 
     #[test]
     fn rounded_table_style() {
-        let mut table = Table::new();
-
-        table.style = TableStyle::rounded();
-
-        add_data_to_test_table(&mut table);
+        let mut builder = Table::builder().style(TableStyle::rounded()).to_owned();
+        add_data_to_test_table(&mut builder);
+        let table = builder.build();
 
         let expected = r"╭─────────────────────────────────────────────────────────────────────────────────╮
 │                            This is some centered text                           │
@@ -983,48 +1005,42 @@ mod test {
 
     #[test]
     fn complex_table() {
-        let mut table = Table::new();
+        let mut table = Table::builder()
+            .rows(rows![
+                row![
+                    TableCell::builder("Col*1*Span*2").col_span(2),
+                    "Col 2 Span 1",
+                    TableCell::builder("Col 3 Span 2").col_span(2),
+                    "Col 4 Span 1"
+                ],
+                row![
+                    "Col 1 Span 1",
+                    "Col 2 Span 1",
+                    "Col 3 Span 1",
+                    TableCell::builder("Col 4 Span 2").col_span(2)
+                ],
+                row!["fasdaff", "fff", "fff",],
+                row![
+                    TableCell::builder("fasdff")
+                        .col_span(3)
+                        .alignment(Alignment::Right),
+                    TableCell::builder("fffdff").col_span(4),
+                ],
+                row!["fasdsaff", "fff", "f\nf\nf\nfff\nrrr\n\n\n",],
+                row!["fasdsaff",],
+            ])
+            .build();
 
-        table.add_row(Row::new(vec![
-            TableCell::new_with_col_span("Col*1*Span*2", 2),
-            TableCell::new("Col 2 Span 1"),
-            TableCell::new_with_col_span("Col 3 Span 2", 2),
-            TableCell::new("Col 4 Span 1"),
-        ]));
-        table.add_row(Row::new(vec![
-            TableCell::new("Col 1 Span 1"),
-            TableCell::new("Col 2 Span 1"),
-            TableCell::new("Col 3 Span 1"),
-            TableCell::new_with_col_span("Col 4 Span 1", 2),
-        ]));
-        table.add_row(Row::new(vec![
-            TableCell::new("fasdaff"),
-            TableCell::new("fff"),
-            TableCell::new("fff"),
-        ]));
-        table.add_row(Row::new(vec![
-            TableCell::new_with_alignment("fasdff", 3, Alignment::Right),
-            TableCell::new_with_col_span("fffdff", 4),
-        ]));
-        table.add_row(Row::new(vec![
-            TableCell::new("fasdsaff"),
-            TableCell::new("fff"),
-            TableCell::new("f\nf\nf\nfff\nrrr\n\n\n"),
-        ]));
-        table.add_row(Row::new(vec![TableCell::new("fasdsaff")]));
+        let s = table.render();
 
-        let s = table.render().clone();
-
-        table.add_row(Row::new(vec![TableCell::new_with_alignment(
-            s,
-            3,
-            Alignment::Left,
-        )]));
+        table.add_row(row![TableCell::builder(s)
+            .col_span(3)
+            .alignment(Alignment::Left)]);
 
         let expected = r"╔═════════════════════════════════════════════════════════╦════════════════════════════╦════════════════╦══════════════╦═══╗
 ║ Col*1*Span*2                                            ║ Col 2 Span 1               ║ Col 3 Span 2   ║ Col 4 Span 1 ║   ║
 ╠════════════════════════════╦════════════════════════════╬════════════════════════════╬════════════════╬══════════════╬═══╣
-║ Col 1 Span 1               ║ Col 2 Span 1               ║ Col 3 Span 1               ║ Col 4 Span 1   ║              ║   ║
+║ Col 1 Span 1               ║ Col 2 Span 1               ║ Col 3 Span 1               ║ Col 4 Span 2   ║              ║   ║
 ╠════════════════════════════╬════════════════════════════╬════════════════════════════╬═══════╦════════╬══════════════╬═══╣
 ║ fasdaff                    ║ fff                        ║ fff                        ║       ║        ║              ║   ║
 ╠════════════════════════════╩════════════════════════════╩════════════════════════════╬═══════╩════════╩══════════════╩═══╣
@@ -1044,7 +1060,7 @@ mod test {
 ║ ╔═════════════════════════════╦══════════════╦════════════════╦══════════════╦═══╗   ║       ║        ║              ║   ║
 ║ ║ Col*1*Span*2                ║ Col 2 Span 1 ║ Col 3 Span 2   ║ Col 4 Span 1 ║   ║   ║       ║        ║              ║   ║
 ║ ╠══════════════╦══════════════╬══════════════╬════════════════╬══════════════╬═══╣   ║       ║        ║              ║   ║
-║ ║ Col 1 Span 1 ║ Col 2 Span 1 ║ Col 3 Span 1 ║ Col 4 Span 1   ║              ║   ║   ║       ║        ║              ║   ║
+║ ║ Col 1 Span 1 ║ Col 2 Span 1 ║ Col 3 Span 1 ║ Col 4 Span 2   ║              ║   ║   ║       ║        ║              ║   ║
 ║ ╠══════════════╬══════════════╬══════════════╬═══════╦════════╬══════════════╬═══╣   ║       ║        ║              ║   ║
 ║ ║ fasdaff      ║ fff          ║ fff          ║       ║        ║              ║   ║   ║       ║        ║              ║   ║
 ║ ╠══════════════╩══════════════╩══════════════╬═══════╩════════╩══════════════╩═══╣   ║       ║        ║              ║   ║
@@ -1070,11 +1086,12 @@ mod test {
 
     #[test]
     fn no_top_boarder() {
-        let mut table = Table::new();
-        table.style = TableStyle::simple();
-        table.has_top_boarder = false;
-
-        add_data_to_test_table(&mut table);
+        let mut builder = Table::builder()
+            .style(TableStyle::simple())
+            .has_top_boarder(false)
+            .to_owned();
+        add_data_to_test_table(&mut builder);
+        let table = builder.build();
 
         let expected = r"|                            This is some centered text                           |
 +----------------------------------------+----------------------------------------+
@@ -1092,11 +1109,12 @@ mod test {
 
     #[test]
     fn no_bottom_boarder() {
-        let mut table = Table::new();
-        table.style = TableStyle::simple();
-        table.has_bottom_boarder = false;
-
-        add_data_to_test_table(&mut table);
+        let mut builder = Table::builder()
+            .style(TableStyle::simple())
+            .has_bottom_boarder(false)
+            .to_owned();
+        add_data_to_test_table(&mut builder);
+        let table = builder.build();
 
         let expected = r"+---------------------------------------------------------------------------------+
 |                            This is some centered text                           |
@@ -1114,11 +1132,13 @@ mod test {
 
     #[test]
     fn no_separators() {
-        let mut table = Table::new();
-        table.style = TableStyle::simple();
-        table.separate_rows = false;
+        let mut builder = Table::builder()
+            .style(TableStyle::simple())
+            .separate_rows(false)
+            .to_owned();
 
-        add_data_to_test_table(&mut table);
+        add_data_to_test_table(&mut builder);
+        let table = builder.build();
 
         let expected = r"+---------------------------------------------------------------------------------+
 |                            This is some centered text                           |
@@ -1134,10 +1154,9 @@ mod test {
 
     #[test]
     fn some_rows_no_separators() {
-        let mut table = Table::new();
-        table.style = TableStyle::simple();
-
-        add_data_to_test_table(&mut table);
+        let mut builder = Table::builder().style(TableStyle::simple()).to_owned();
+        add_data_to_test_table(&mut builder);
+        let mut table = builder.build();
 
         table.rows[2].has_separator = false;
 
@@ -1157,8 +1176,9 @@ mod test {
 
     #[test]
     fn colored_data_works() {
-        let mut table = Table::new();
-        table.add_row(Row::new(vec![TableCell::new("\u{1b}[31ma\u{1b}[0m")]));
+        let table = Table::builder()
+            .rows(rows![row![TableCell::builder("\u{1b}[31ma\u{1b}[0m")]])
+            .build();
         let expected = "╔═══╗
 ║ \u{1b}[31ma\u{1b}[0m ║
 ╚═══╝
@@ -1167,26 +1187,31 @@ mod test {
         assert_eq!(expected, table.render());
     }
 
-    fn add_data_to_test_table(table: &mut Table) {
-        table.max_column_width = 40;
-        table.add_row(Row::new(vec![TableCell::new_with_alignment(
-            "This is some centered text",
-            2,
-            Alignment::Center,
-        )]));
-
-        table.add_row(Row::new(vec![
-            TableCell::new(&"This is left aligned text"),
-            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
-        ]));
-
-        table.add_row(Row::new(vec![
-            TableCell::new("This is left aligned text"),
-            TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
-        ]));
-
-        table.add_row(Row::new(vec![
-            TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
-        ]));
+    fn add_data_to_test_table(builder: &mut TableBuilder) {
+        builder
+        .max_column_width(40)
+        .rows(
+            rows![
+                row![
+                    TableCell::builder("This is some centered text")
+                        .col_span(2)
+                        .alignment(Alignment::Center)
+                ],
+                row![
+                    "This is left aligned text",
+                    TableCell::builder("This is right aligned text")
+                        .alignment(Alignment::Right)
+                ],
+                row![
+                    "This is left aligned text",
+                    TableCell::builder("This is right aligned text")
+                        .alignment(Alignment::Right)
+                ],
+                row![
+                    TableCell::builder("This is some really really really really really really really really really that is going to wrap to the next line")
+                        .col_span(2)
+                ]
+            ]
+        );
     }
 }
