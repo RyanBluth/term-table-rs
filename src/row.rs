@@ -3,7 +3,6 @@ use crate::{RowPosition, TableStyle};
 use std::cmp::max;
 use unicode_width::UnicodeWidthChar;
 
-
 /// A set of table cells
 #[derive(Debug, Clone)]
 pub struct Row {
@@ -27,6 +26,16 @@ impl Row {
             row.cells.push(entry.into());
         }
 
+        row
+    }
+
+    pub fn without_separator<I, T>(cells: I) -> Row
+    where
+        T: Into<TableCell>,
+        I: IntoIterator<Item = T>,
+    {
+        let mut row = Self::new(cells);
+        row.has_separator = false;
         row
     }
 

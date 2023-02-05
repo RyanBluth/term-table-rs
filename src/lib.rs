@@ -2,29 +2,43 @@
 //!# Example
 //! Here is an example of how to create a simple table
 //!```
-//!use term_table::table_cell::TableCell;
-//!use term_table::row::Row;
+//! use term_table::table_cell::TableCell;
+//! use term_table::row::Row;
+//! use term_table::{Table, TableStyle, rows, row};
 //!  
-//!let mut table = term_table::Table::new();
-//!table.max_column_width = 40;
+//! let mut table = Table::builder()
+//!     .max_column_width(40)
+//!     .style(TableStyle::extended())
+//!     .rows(rows![
+//!        row![
+//!             TableCell::builder("This is some centered text")
+//!                 .col_span(2)
+//!                 .alignment(term_table::table_cell::Alignment::Center)
+//!                 .build(),
+//!        ],
+//!        row![
+//!             "This is left aligned text",        
+//!             TableCell::builder("This is right aligned text")
+//!                 .alignment(term_table::table_cell::Alignment::Right)
+//!                 .build(),
+//!         ],
+//!         row![
+//!            "This is left aligned text",
+//!           TableCell::builder("This is right aligned text")
+//!                 .alignment(term_table::table_cell::Alignment::Right)
+//!                 .build(),
+//!        ],
+//!        row![
+//!           TableCell::builder("This is some really really really really really really really really really that is going to wrap to the next line")
+//!                 .col_span(2)
+//!                 .build(),
+//!        ],
+//!         
+//!     ])
+//!     .build();
 //!
-//!table.style = term_table::TableStyle::extended();
-//!table.add_row(Row::new(vec![
-//!    TableCell::new_with_alignment("This is some centered text", 2, term_table::table_cell::Alignment::Center)
-//!]));
-//!table.add_row(Row::new(vec![
-//!    TableCell::new("This is left aligned text"),
-//!    TableCell::new_with_alignment("This is right aligned text", 1, term_table::table_cell::Alignment::Right)
-//!]));
-//! table.add_row(Row::new(vec![
-//!    TableCell::new("This is left aligned text"),
-//!    TableCell::new_with_alignment("This is right aligned text", 1, term_table::table_cell::Alignment::Right)
-//!]));
-//!table.add_row(Row::new(vec![
-//!    TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
-//!]));
-//!println!("{}", table.render());
-//!```
+//! println!("{}", table.render());
+//! ```
 //!
 //!### This is the result
 //!
@@ -47,14 +61,13 @@ extern crate lazy_static;
 pub mod row;
 pub mod table_cell;
 
-use table_cell::TableCellBuilder;
-
 use crate::row::Row;
 use crate::table_cell::Alignment;
 
 use std::cmp::{max, min};
 use std::collections::HashMap;
 
+#[macro_export]
 macro_rules! row {
     [ $($x:expr),* ] => {
         Row::new(vec![$(Into::<TableCell>::into($x)),*])
@@ -62,6 +75,15 @@ macro_rules! row {
     [ $($x:expr,)* ] => (row![$($x),*])
 }
 
+#[macro_export]
+macro_rules! row_no_separator {
+    [ $($x:expr),* ] => {
+        Row::without_separator(vec![$(Into::<TableCell>::into($x)),*])
+    };
+    [ $($x:expr,)* ] => (row![$($x),*])
+}
+
+#[macro_export]
 macro_rules! rows {
     [ $($x:expr),* ] => {
         vec![$($x),*]
@@ -82,20 +104,20 @@ pub enum RowPosition {
 ///# Example
 ///
 ///```
-///   term_table::TableStyle {
-///            top_left_corner: '╔',
-///            top_right_corner: '╗',
-///            bottom_left_corner: '╚',
-///            bottom_right_corner: '╝',
-///            outer_left_vertical: '╠',
-///            outer_right_vertical: '╣',
-///            outer_bottom_horizontal: '╩',
-///            outer_top_horizontal: '╦',
-///            intersection: '╬',
-///            vertical: '║',
-///            horizontal: '═',
-///        };
-///```
+/// term_table::TableStyle {
+///     top_left_corner: '╔',
+///     top_right_corner: '╗',
+///     bottom_left_corner: '╚',
+///     bottom_right_corner: '╝',
+///     outer_left_vertical: '╠',
+///     outer_right_vertical: '╣',
+///     outer_bottom_horizontal: '╩',
+///     outer_top_horizontal: '╦',
+///     intersection: '╬',
+///     vertical: '║',
+///     horizontal: '═',
+/// };
+/// ```
 #[derive(Debug, Clone, Copy)]
 pub struct TableStyle {
     pub top_left_corner: char,

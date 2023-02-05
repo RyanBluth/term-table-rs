@@ -1,34 +1,38 @@
 extern crate term_table;
 use term_table::{
+    row,
     row::Row,
+    rows,
     table_cell::{Alignment, TableCell},
 };
 use term_table::{Table, TableStyle};
 fn main() {
-    let mut table = Table::new();
-    table.max_column_width = 80;
-
-    table.style = TableStyle::elegant();
-
-    table.add_row(Row::new(vec![TableCell::new_with_alignment(
-        "This is some centered text",
-        2,
-        Alignment::Center,
-    )]));
-
-    table.add_row(Row::new(vec![
-        TableCell::new("This is left aligned text"),
-        TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
-    ]));
-
-    table.add_row(Row::new(vec![
-        TableCell::new("This is left aligned text"),
-        TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right),
-    ]));
-
-    table.add_row(Row::new(vec![
-        TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
-    ]));
+    let table = Table::builder()
+    .separate_rows(false)
+    .style(TableStyle::elegant())
+    .max_column_width(80)
+    .rows(rows![
+        row![
+            TableCell::builder("This is some centered text")
+            .col_span(2)
+            .alignment(Alignment::Center)
+        ],
+        row![
+            TableCell::builder("This is left aligned text"),
+            TableCell::builder("This is right aligned text")
+                .alignment(Alignment::Right)
+        ],
+        row![
+            TableCell::builder("This is left aligned text"),
+            TableCell::builder("This is right aligned text")
+                .alignment(Alignment::Right)
+        ],
+        row![
+            TableCell::builder("This is some really really really really really really really really really that is going to wrap to the next line")
+            .col_span(2)
+        ],
+    ])
+    .build();
 
     println!("{}", table.render());
 }
