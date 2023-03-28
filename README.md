@@ -9,62 +9,38 @@
 ## Example
 
 ```rust
-let mut table = Table::new();
-table.max_column_width = 40;
+use rand::Rng;
+use term_table::{row, row::Row, rows, table_cell::*, Table, TableStyle};
 
-table.style = TableStyle::extended(); 
+fn main() {
+    let mut rng = rand::thread_rng();
+    let num_draws = 5;
+    let num_numbers = 6;
+    let range = 1..=99;
 
-table.add_row(Row::new(vec![
-    TableCell::new_with_alignment("This is some centered text", 2, Alignment::Center)
-])); 
+    let mut table = Table::builder()
+        .rows(rows![row!(TableCell::builder("My Lucky Numbers")
+            .alignment(Alignment::Center)
+            .col_span(num_numbers))])
+        .style(TableStyle::elegant())
+        .build();
 
-table.add_row(Row::new(vec![
-    TableCell::new("This is left aligned text", 1),
-    TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
-]));
+    for _ in 0..num_draws {
+        let mut row = Row::empty();
+        for _ in 0..num_numbers {
+            let num: i32 = rng.gen_range(range.clone());
+            row.add_cell(TableCell::new(num.to_string()));
+        }
+        table.add_row(row);
+    }
 
-table.add_row(Row::new(vec![
-    TableCell::new("This is left aligned text", 1),
-    TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
-]));
-
-table.add_row(Row::new(vec![
-    TableCell::new("This is some really really really really really really really really really that is going to wrap to the next line", 2),
-]));   
-
-println!("{}", table.render());
+    println!("{}", table.render());
+}
 
 ```
 ### Here's the result
 
-![extended style](https://i.imgur.com/NHEg0Sf.png)
-
-### Using TableBuilder
-
-```rust
-let table = TableBuilder::new().style(TableStyle::extended()).rows(
-        vec![
-            Row::new(vec![
-                TableCell::new_with_alignment("This is some centered text", 2, Alignment::Center)
-            ]),
-            Row::new(vec![
-                TableCell::new("This is left aligned text"),
-                TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
-            ]),
-            Row::new(vec![
-                TableCell::new("This is left aligned text"),
-                TableCell::new_with_alignment("This is right aligned text", 1, Alignment::Right)
-            ]),
-                Row::new(vec![
-                TableCell::new_with_col_span("This is some really really really really really really really really really that is going to wrap to the next line", 2),
-            ]),
-        ]
-    ).build();
-
-println!("{}", table.render());
-
-```
-
+![extended style](https://i.imgur.com/64b0z1X.png)
 
 ## Table Styles
 

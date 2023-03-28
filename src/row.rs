@@ -29,6 +29,13 @@ impl Row {
         row
     }
 
+    pub fn empty() -> Row {
+        Row {
+            cells: vec![],
+            has_separator: true,
+        }
+    }
+
     pub fn without_separator<I, T>(cells: I) -> Row
     where
         T: Into<TableCell>,
@@ -305,4 +312,10 @@ impl Row {
             }
         }
     }
+
+    /// Adds a cell to the row
+    pub fn add_cell(&mut self, cell: TableCell) {
+        self.cells.push(cell);
+    }
+
 }
