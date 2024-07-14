@@ -1,3 +1,7 @@
+# 1.4.0
+Added macros
+Move towards using builder
+
 # 1.3.2
 Added empty table style #8
 
