@@ -92,8 +92,9 @@ macro_rules! rows {
 }
 
 /// Represents the vertical position of a row
-#[derive(Eq, PartialEq, Copy, Clone)]
+#[derive(Clone, Copy, Default, Hash, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum RowPosition {
+    #[default]
     First,
     Mid,
     Last,
@@ -118,7 +119,7 @@ pub enum RowPosition {
 ///     horizontal: '═',
 /// };
 /// ```
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy, Default, Hash, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct TableStyle {
     pub top_left_corner: char,
     pub top_right_corner: char,
@@ -587,7 +588,7 @@ impl ToString for Table {
 }
 
 /// Used to create non-mutable tables
-#[derive(Clone, Debug)]
+ #[derive(Clone, Debug)]
 pub struct TableBuilder {
     rows: Vec<Row>,
     style: TableStyle,
