@@ -267,7 +267,6 @@ impl TableStyle {
     /// │ t is going to wrap to the next line                                             │
     /// ╚─────────────────────────────────────────────────────────────────────────────────╝
     /// </pre>
-
     pub fn elegant() -> TableStyle {
         TableStyle {
             top_left_corner: '╔',
@@ -381,15 +380,15 @@ impl TableStyle {
         if (top == self.horizontal || top == self.outer_bottom_horizontal)
             && bottom == self.intersection
         {
-            return self.outer_top_horizontal;
+            self.outer_top_horizontal
         } else if (top == self.intersection || top == self.outer_top_horizontal)
             && bottom == self.horizontal
         {
-            return self.outer_bottom_horizontal;
+            self.outer_bottom_horizontal
         } else if top == self.outer_bottom_horizontal && bottom == self.horizontal {
-            return self.horizontal;
+            self.horizontal
         } else {
-            return self.intersect_for_position(pos);
+            self.intersect_for_position(pos)
         }
     }
 }
@@ -399,7 +398,7 @@ impl TableStyle {
 pub struct Table {
     pub rows: Vec<Row>,
     pub style: TableStyle,
-    /// The maximum width of all columns. Overridden by values in column_widths. Defaults to `std::usize::max`
+    /// The maximum width of all columns. Overridden by values in column_widths. Defaults to `usize::MAX`
     pub max_column_width: usize,
     /// The maximum widths of specific columns. Override max_column
     pub max_column_widths: HashMap<usize, usize>,
@@ -417,7 +416,7 @@ impl Table {
         Self {
             rows: Vec::new(),
             style: TableStyle::extended(),
-            max_column_width: std::usize::MAX,
+            max_column_width: usize::MAX,
             max_column_widths: HashMap::new(),
             separate_rows: true,
             has_top_boarder: true,
@@ -434,7 +433,7 @@ impl Table {
         Self {
             rows,
             style: TableStyle::extended(),
-            max_column_width: std::usize::MAX,
+            max_column_width: usize::MAX,
             max_column_widths: HashMap::new(),
             separate_rows: true,
             has_top_boarder: true,
@@ -508,7 +507,7 @@ impl Table {
                 Table::buffer_line(&mut print_buffer, &separator);
             }
         }
-        return print_buffer;
+        print_buffer
     }
 
     /// Calculates the maximum width for each column.
@@ -531,7 +530,7 @@ impl Table {
                     .max_column_widths
                     .get(&i)
                     .unwrap_or(&self.max_column_width);
-                max_width = max(min_widths[i] as usize, max_width);
+                max_width = max(min_widths[i], max_width);
                 max_widths[i] = min(max_width, max(max_widths[i], column_widths[i].0 as usize));
             }
         }
@@ -542,8 +541,8 @@ impl Table {
             let mut col_index = 0;
             for cell in row.cells.iter() {
                 let mut total_col_width = 0;
-                for i in col_index..col_index + cell.col_span {
-                    total_col_width += max_widths[i];
+                for max_width in max_widths.iter().skip(col_index).take(cell.col_span) {
+                    total_col_width += max_width;
                 }
                 if cell.width() != total_col_width
                     && cell.alignment == Alignment::Center
@@ -566,7 +565,7 @@ impl Table {
             }
         }
 
-        return max_widths;
+        max_widths
     }
 
     /// Helper method for adding a line to a string buffer
@@ -577,13 +576,13 @@ impl Table {
 
 impl Default for Table {
     fn default() -> Self {
-        return Table::new();
+        Table::new()
     }
 }
 
-impl ToString for Table {
-    fn to_string(&self) -> String {
-        return self.render();
+impl std::fmt::Display for Table {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.render())
     }
 }
 
@@ -604,7 +603,7 @@ impl TableBuilder {
         TableBuilder {
             rows: Vec::new(),
             style: TableStyle::extended(),
-            max_column_width: std::usize::MAX,
+            max_column_width: usize::MAX,
             max_column_widths: HashMap::new(),
             separate_rows: true,
             has_top_boarder: true,
@@ -622,7 +621,7 @@ impl TableBuilder {
         self
     }
 
-    /// The maximum width of all columns. Overridden by values in column_widths. Defaults to `std::usize::max`
+    /// The maximum width of all columns. Overridden by values in column_widths. Defaults to `usize::MAX`
     pub fn max_column_width(&mut self, max_column_width: usize) -> &mut Self {
         self.max_column_width = max_column_width;
         self

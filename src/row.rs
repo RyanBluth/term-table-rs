@@ -85,7 +85,8 @@ impl Row {
 
         // We need to iterate over all of the column widths
         // We may not have as many cells as column widths, or the cells may not even span
-        // as many columns as are in column widths. In that case weill will create empty cells
+        // as many columns as are in column widths. In that case we will create empty cells
+        #[allow(clippy::needless_range_loop)] // col_idx indexes two vecs here
         for col_idx in 0..column_widths.len() {
             // Check to see if we actually have a cell for the column index
             // Otherwise we will just need to print out empty space as filler
@@ -299,16 +300,16 @@ impl Row {
     /// Pads a string accoding to the provided alignment
     fn pad_string(&self, padding: usize, alignment: Alignment, text: &str) -> String {
         match alignment {
-            Alignment::Left => return format!("{}{}", text, str::repeat(" ", padding)),
-            Alignment::Right => return format!("{}{}", str::repeat(" ", padding), text),
+            Alignment::Left => format!("{}{}", text, str::repeat(" ", padding)),
+            Alignment::Right => format!("{}{}", str::repeat(" ", padding), text),
             Alignment::Center => {
                 let half_padding = padding as f32 / 2.0;
-                return format!(
+                format!(
                     "{}{}{}",
                     str::repeat(" ", half_padding.ceil() as usize),
                     text,
                     str::repeat(" ", half_padding.floor() as usize)
-                );
+                )
             }
         }
     }

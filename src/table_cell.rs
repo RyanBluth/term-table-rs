@@ -95,7 +95,7 @@ impl TableCell {
     ///
     /// New line characters are taken into account during the calculation.
     pub fn width(&self) -> usize {
-        let wrapped = self.wrapped_content(std::usize::MAX);
+        let wrapped = self.wrapped_content(usize::MAX);
         let mut max = 0;
         for s in wrapped {
             let str_width = string_width(&s);
@@ -106,19 +106,18 @@ impl TableCell {
 
     /// The width of the cell's content divided by its `col_span` value.
     pub fn split_width(&self) -> f32 {
-        let res = self.width() as f32 / self.col_span as f32;
-        res
+        self.width() as f32 / self.col_span as f32
     }
 
     /// The minium width required to display the cell properly
     pub fn min_width(&self) -> usize {
         let mut max_char_width: usize = 0;
         for c in self.data.chars() {
-            max_char_width = cmp::max(max_char_width, c.width().unwrap_or(1) as usize);
+            max_char_width = cmp::max(max_char_width, c.width().unwrap_or(1));
         }
 
         if self.pad_content {
-            max_char_width + ' '.width().unwrap_or(1) as usize * 2
+            max_char_width + ' '.width().unwrap_or(1) * 2
         } else {
             max_char_width
         }
@@ -176,15 +175,15 @@ pub struct TableCellBuilder {
     pad_content: bool,
 }
 
-impl Into<TableCell> for TableCellBuilder {
-    fn into(self) -> TableCell {
-        self.build()
+impl From<TableCellBuilder> for TableCell {
+    fn from(val: TableCellBuilder) -> Self {
+        val.build()
     }
 }
 
-impl Into<TableCell> for &mut TableCellBuilder {
-    fn into(self) -> TableCell {
-        self.build()
+impl From<&mut TableCellBuilder> for TableCell {
+    fn from(val: &mut TableCellBuilder) -> Self {
+        val.build()
     }
 }
 
