@@ -1,11 +1,7 @@
-use rand::Rng;
 use term_table::{row, row::Row, rows, table_cell::*, Table, TableStyle};
 
 fn main() {
-    let mut rng = rand::thread_rng();
-    let num_draws = 5;
     let num_numbers = 6;
-    let range = 1..=99;
 
     let mut table = Table::builder()
         .rows(rows![row!(TableCell::builder("My Lucky Numbers")
@@ -14,10 +10,17 @@ fn main() {
         .style(TableStyle::elegant())
         .build();
 
-    for _ in 0..num_draws {
+    let draws = [
+        [1, 2, 3, 4, 5, 6],
+        [7, 8, 9, 10, 11, 12],
+        [13, 14, 15, 16, 17, 18],
+        [19, 20, 21, 22, 23, 24],
+        [25, 26, 27, 28, 29, 30],
+    ];
+
+    for draw in draws.iter() {
         let mut row = Row::empty();
-        for _ in 0..num_numbers {
-            let num: i32 = rng.gen_range(range.clone());
+        for num in draw.iter() {
             row.add_cell(TableCell::new(num.to_string()));
         }
         table.add_row(row);

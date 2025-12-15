@@ -127,23 +127,32 @@ impl TableCell {
     ///
     /// New line characters are taken into account.
     pub fn wrapped_content(&self, width: usize) -> Vec<String> {
-        let pad_char = if self.pad_content { ' ' } else { '\0' };
+        let pad_char = ' ';
         let hidden: HashSet<usize> = STRIP_ANSI_RE
             .find_iter(&self.data)
             .flat_map(|m| m.start()..m.end())
             .collect();
         let mut res: Vec<String> = Vec::new();
         let mut buf = String::new();
-        buf.push(pad_char);
+
+        if self.pad_content {
+            buf.push(pad_char);
+        }
+
         let mut byte_index = 0;
         for c in self.data.chars() {
+            let pad_width = if self.pad_content { 1 } else { 0 };
             if !hidden.contains(&byte_index)
-                && (string_width(&buf) >= width - pad_char.width().unwrap_or(1) || c == '\n')
+                && (string_width(&buf) >= width - pad_width || c == '\n')
             {
-                buf.push(pad_char);
+                if self.pad_content {
+                    buf.push(pad_char);
+                }
                 res.push(buf);
                 buf = String::new();
-                buf.push(pad_char);
+                if self.pad_content {
+                    buf.push(pad_char);
+                }
                 if c == '\n' {
                     byte_index += 1;
                     continue;
@@ -152,7 +161,9 @@ impl TableCell {
             byte_index += c.len_utf8();
             buf.push(c);
         }
-        buf.push(pad_char);
+        if self.pad_content {
+            buf.push(pad_char);
+        }
         res.push(buf);
 
         res

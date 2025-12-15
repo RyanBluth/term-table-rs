@@ -5,7 +5,7 @@
 //! use term_table::table_cell::TableCell;
 //! use term_table::row::Row;
 //! use term_table::{Table, TableStyle, rows, row};
-//!  
+//!
 //! let mut table = Table::builder()
 //!     .max_column_width(40)
 //!     .style(TableStyle::extended())
@@ -17,7 +17,7 @@
 //!                 .build(),
 //!        ],
 //!        row![
-//!             "This is left aligned text",        
+//!             "This is left aligned text",
 //!             TableCell::builder("This is right aligned text")
 //!                 .alignment(term_table::table_cell::Alignment::Right)
 //!                 .build(),
@@ -33,7 +33,7 @@
 //!                 .col_span(2)
 //!                 .build(),
 //!        ],
-//!         
+//!
 //!     ])
 //!     .build();
 //!
@@ -803,7 +803,7 @@ mod test {
 +----------+-----+
 | 2        | 10  |
 +----------+-----+
-|\03\0         | 100 |
+|3         | 100 |
 +----------+-----+
 |        S       |
 +----------------+
